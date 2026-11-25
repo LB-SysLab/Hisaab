@@ -114,3 +114,16 @@ test("typing in English letters becomes Telugu or Hindi", () => {
   assert.equal(Core.translitText("250 paalu", "te"), "250 పాలు");
   assert.equal(Core.translitText("biyy", "te", true), "biyy", "the word still being typed is left alone");
 });
+
+test("names show in Telugu or Hindi letters; English and saved names stay the same", () => {
+  const want = {
+    "Ravi Kumar": ["రవి కుమార్", "रवि कुमार"], "Sunita Devi": ["సునీత దేవి", "सुनीता देवी"], "Mohd Irfan": ["మొహమ్మద్ ఇర్ఫాన్", "मोहम्मद इरफ़ान"],
+    "Anjali Reddy": ["అంజలి రెడ్డి", "अंजलि रेड्डी"], "Prakash Rao": ["ప్రకాష్ రావు", "प्रकाश राव"], "Fatima Begum": ["ఫాతిమా బేగం", "फ़ातिमा बेगम"],
+    "Venkat Naidu": ["వెంకట్ నాయుడు", "वेंकट नायडू"], "Kavitha S": ["కవిత ఎస్", "कविता एस"]
+  };
+  for (const c of load().customers) {
+    assert.deepEqual([Core.displayName(c.name, "te"), Core.displayName(c.name, "hi")], want[c.name], c.name);
+    assert.equal(Core.displayName(c.name, "en"), c.name);
+  }
+  assert.equal(Core.displayName("సీత లక్ష్మి", "hi"), "సీత లక్ష్మి", "names already in a script are left alone");
+});

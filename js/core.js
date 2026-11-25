@@ -200,8 +200,15 @@
     }
     return null;
   }
-  function translitWord(word, code) {
+  // name: true for people's names, which are usually spelled casually
+  // (Devi, Ramesh, Sunita): e/o are long, a final "sh" is ష in Telugu, a final "a" is long and "th" is त in Hindi
+  function translitWord(word, code, name) {
     var S = SCRIPTS[code]; if (!S) return word;
+    if (name) {
+      if (code === "hi") word = word.replace(/([^aeiouAEIOU])a$/, "$1aa");
+      if (code === "hi") word = word.replace(/th/g, "t");
+      if (code === "te") word = word.replace(/sh$/, "Sh");
+    }
     // A capital first letter is usually the phone's auto-capital, not a sound choice
     word = word.charAt(0).toLowerCase() + word.slice(1);
     word = word.replace(/([^aeiouAEIOU])y$/, "$1i");
@@ -209,7 +216,9 @@
     while (i < word.length) {
       var v = matchAt(word, i, VOW_KEYS);
       if (v) {
-        var pair = S.vow[v[1]];
+        var vk = v[1];
+        if (name && code === "te" && (v[0] === "e" || v[0] === "o")) vk = v[0] === "e" ? "ee_" : "oo_";
+        var pair = S.vow[vk];
         out += prevCon ? pair[1] : pair[0];
         prevCon = false; i += v[0].length; continue;
       }
@@ -243,11 +252,28 @@
     return parts.map(function (p, k) { return /^[A-Za-z]+$/.test(p) && k !== lastWord ? translitWord(p, code) : p; }).join("");
   }
 
+
+  /* ---------- Names shown in Telugu / Hindi (display only; the saved name never changes) ---------- */
+  // Common name parts written the usual way; anything else uses the sound rules above
+  var NAME_WORDS = { kumar: ["కుమార్", "कुमार"], devi: ["దేవి", "देवी"], ravi: ["రవి", "रवि"], sunita: ["సునీత", "सुनीता"], sunitha: ["సునీత", "सुनीता"], mohd: ["మొహమ్మద్", "मोहम्मद"], mohammed: ["మొహమ్మద్", "मोहम्मद"], mohammad: ["మొహమ్మద్", "मोहम्मद"], muhammad: ["మొహమ్మద్", "मोहम्मद"], irfan: ["ఇర్ఫాన్", "इरफ़ान"], anjali: ["అంజలి", "अंजलि"], reddy: ["రెడ్డి", "रेड्डी"], prakash: ["ప్రకాష్", "प्रकाश"], rao: ["రావు", "राव"], fatima: ["ఫాతిమా", "फ़ातिमा"], begum: ["బేగం", "बेगम"], venkat: ["వెంకట్", "वेंकट"], venkatesh: ["వెంకటేష్", "वेंकटेश"], naidu: ["నాయుడు", "नायडू"], kavitha: ["కవిత", "कविता"], kavita: ["కవిత", "कविता"], lakshmi: ["లక్ష్మి", "लक्ष्मी"], laxmi: ["లక్ష్మి", "लक्ष्मी"], ramesh: ["రమేష్", "रमेश"], suresh: ["సురేష్", "सुरेश"], mahesh: ["మహేష్", "महेश"], rajesh: ["రాజేష్", "राजेश"], raju: ["రాజు", "राजू"], ram: ["రామ్", "राम"], krishna: ["కృష్ణ", "कृष्ण"], srinivas: ["శ్రీనివాస్", "श्रीनिवास"], sri: ["శ్రీ", "श्री"], sai: ["సాయి", "साई"], priya: ["ప్రియ", "प्रिया"], anita: ["అనిత", "अनीता"], anitha: ["అనిత", "अनीता"], geeta: ["గీత", "गीता"], geetha: ["గీత", "गीता"], gita: ["గీత", "गीता"], sita: ["సీత", "सीता"], seeta: ["సీత", "सीता"], seetha: ["సీత", "सीता"], radha: ["రాధ", "राधा"], padma: ["పద్మ", "पद्मा"], shankar: ["శంకర్", "शंकर"], ganesh: ["గణేష్", "गणेश"], gopal: ["గోపాల్", "गोपाल"], mohan: ["మోహన్", "मोहन"], murali: ["మురళి", "मुरली"], naresh: ["నరేష్", "नरेश"], ramu: ["రాము", "रामू"], sharma: ["శర్మ", "शर्मा"], singh: ["సింగ్", "सिंह"], khan: ["ఖాన్", "ख़ान"], ali: ["అలీ", "अली"], ahmed: ["అహ్మద్", "अहमद"], patel: ["పటేల్", "पटेल"], gupta: ["గుప్తా", "गुप्ता"], verma: ["వర్మ", "वर्मा"], yadav: ["యాదవ్", "यादव"], shaik: ["షేక్", "शेख़"], shaikh: ["షేక్", "शेख़"], babu: ["బాబు", "बाबू"], anil: ["అనిల్", "अनिल"], sunil: ["సునీల్", "सुनील"], vijay: ["విజయ్", "विजय"], ajay: ["అజయ్", "अजय"], deepa: ["దీప", "दीपा"], rekha: ["రేఖ", "रेखा"], usha: ["ఉష", "उषा"], latha: ["లత", "लता"], lata: ["లత", "लता"], swathi: ["స్వాతి", "स्वाति"], divya: ["దివ్య", "दिव्या"], pooja: ["పూజ", "पूजा"], neha: ["నేహ", "नेहा"], arjun: ["అర్జున్", "अर्जुन"], kiran: ["కిరణ్", "किरण"], satish: ["సతీష్", "सतीश"], naveen: ["నవీన్", "नवीन"], praveen: ["ప్రవీణ్", "प्रवीण"], harish: ["హరీష్", "हरीश"], lalitha: ["లలిత", "ललिता"], saritha: ["సరిత", "सरिता"], madhu: ["మధు", "मधु"], hari: ["హరి", "हरि"], chandra: ["చంద్ర", "चंद्र"], rani: ["రాణి", "रानी"], rahul: ["రాహుల్", "राहुल"], amit: ["అమిత్", "अमित"], raj: ["రాజ్", "राज"] };
+  // Single letters (initials like "Kavitha S") are read out the way people say them
+  var LETTERS = { a: ["ఏ", "ए"], b: ["బి", "बी"], c: ["సి", "सी"], d: ["డి", "डी"], e: ["ఈ", "ई"], f: ["ఎఫ్", "एफ़"], g: ["జి", "जी"], h: ["హెచ్", "एच"], i: ["ఐ", "आई"], j: ["జె", "जे"], k: ["కె", "के"], l: ["ఎల్", "एल"], m: ["ఎం", "एम"], n: ["ఎన్", "एन"], o: ["ఓ", "ओ"], p: ["పి", "पी"], q: ["క్యూ", "क्यू"], r: ["ఆర్", "आर"], s: ["ఎస్", "एस"], t: ["టి", "टी"], u: ["యు", "यू"], v: ["వి", "वी"], w: ["డబ్ల్యు", "डब्ल्यू"], x: ["ఎక్స్", "एक्स"], y: ["వై", "वाई"], z: ["జెడ్", "ज़ेड"] };
+  function displayName(name, code) {
+    if (code !== "te" && code !== "hi") return String(name);
+    var col = code === "te" ? 0 : 1;
+    return String(name).replace(/[A-Za-z]+/g, function (w) {
+      var key = w.toLowerCase();
+      if (NAME_WORDS.hasOwnProperty(key)) return NAME_WORDS[key][col];
+      if (key.length === 1 && LETTERS[key]) return LETTERS[key][col];
+      return translitWord(w, code, true);
+    });
+  }
+
   return {
     pad: pad, isoOf: isoOf, parseISO: parseISO, todayFrom: todayFrom, daysBetween: daysBetween,
     OVERDUE_DAYS: OVERDUE_DAYS, summarise: summarise, totalOutstanding: totalOutstanding, sortedEntries: sortedEntries, overdueList: overdueList,
     cleanPhone: cleanPhone, isValidPhone: isValidPhone,
     uid: uid, nextSeq: nextSeq, noteSeq: noteSeq,
-    parseShop: parseShop, buildCsv: buildCsv, pickAmount: pickAmount, translitText: translitText
+    parseShop: parseShop, buildCsv: buildCsv, pickAmount: pickAmount, translitText: translitText, displayName: displayName
   };
 });

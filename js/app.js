@@ -21,6 +21,8 @@
   function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (_, k) { return o[k] != null ? o[k] : ""; }); }
   function fmt(n) { var v = Math.round(Number(n) * 100) / 100; return v.toLocaleString("en-IN", { maximumFractionDigits: 2 }); }
   function plain(n) { var v = Math.round(Number(n) * 100) / 100; return String(v); }
+  // The customer name as shown in the chosen language (saved name stays as typed)
+  function shownName(c) { return Core.displayName(c.name, lang); }
   function initials(n) { return String(n || "?").trim().split(/\s+/).map(function (p) { return p[0] || ""; }).join("").slice(0, 2).toUpperCase() || "?"; }
   function prettyPhone(p) { p = String(p || ""); return p.length === 10 ? p.slice(0, 5) + " " + p.slice(5) : p; }
   var Core = HisaabCore;
@@ -69,7 +71,7 @@
     var t = T[lang];
     var upi = state.shop.upi || UPI_PLACEHOLDER;
     var link = "upi://pay?pa=" + upi + "&pn=" + encodeURIComponent(state.shop.name || "Shop") + "&am=" + plain(s.bal) + "&cu=INR";
-    var msg = fill(t.msg, { name: c.name, shop: state.shop.name || t.app, amt: plain(s.bal), upi: fill(t.msgUpi, { link: link }) });
+    var msg = fill(t.msg, { name: shownName(c), shop: state.shop.name || t.app, amt: plain(s.bal), upi: fill(t.msgUpi, { link: link }) });
     return "https://wa.me/91" + c.phone + "?text=" + encodeURIComponent(msg);
   }
   var waIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 2.9 2.9 0 0 0-.9 2.2 5 5 0 0 0 1 2.7 11.5 11.5 0 0 0 4.4 3.9c1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.3Z"/></svg>';
@@ -147,7 +149,7 @@
       if (filter === "owe" && r.s.bal <= 0) return false;
       if (filter === "late" && !r.s.late) return false;
       if (!q) return true;
-      return String(r.c.name).toLowerCase().indexOf(q) > -1 || (qd && String(r.c.phone).indexOf(qd) > -1);
+      return String(r.c.name).toLowerCase().indexOf(q) > -1 || shownName(r.c).toLowerCase().indexOf(q) > -1 || (qd && String(r.c.phone).indexOf(qd) > -1);
     });
     if (filter === "late") shown.sort(function (a, b) { return b.s.days - a.s.days; });
     else shown.sort(function (a, b) { return b.s.bal - a.s.bal || String(a.c.name).localeCompare(String(b.c.name)); });
@@ -162,8 +164,8 @@
         ? '<a class="remind" data-remind="' + ph + '" href="' + esc(waLink(c, s)) + '" target="_blank" rel="noopener">' + waIcon + esc(t.remind) + "</a>"
         : '<a class="remind" data-remind="' + ph + '" aria-disabled="true" tabindex="-1">' + waIcon + esc(t.remind) + "</a>";
       return '<li class="card" data-customer="' + ph + '">' +
-        '<div class="av t' + ((Number(String(c.phone).slice(-1)) || 0) % 5 + 1) + '" aria-hidden="true">' + esc(initials(c.name)) + "</div>" +
-        '<div class="who"><a class="nm" href="#c-' + ph + '">' + esc(c.name) + '</a><div class="ph">' + esc(prettyPhone(c.phone)) + "</div></div>" +
+        '<div class="av t' + ((Number(String(c.phone).slice(-1)) || 0) % 5 + 1) + '" aria-hidden="true">' + esc(initials(shownName(c))) + "</div>" +
+        '<div class="who"><a class="nm" href="#c-' + ph + '">' + esc(shownName(c)) + '</a><div class="ph">' + esc(prettyPhone(c.phone)) + "</div></div>" +
         '<div class="bal' + balClass(s.bal) + '" data-balance="' + s.bal + '">Rs ' + fmt(s.bal) + "</div>" +
         '<div class="meta">' + statusTag(s) + remind + "</div></li>";
     }).join("");
@@ -172,7 +174,7 @@
   function renderCustomer(c) {
     var t = T[lang], s = summarise(c);
     document.getElementById("list").innerHTML = "";
-    document.getElementById("c-name").textContent = c.name;
+    document.getElementById("c-name").textContent = shownName(c);
     document.getElementById("c-phone").textContent = "+91 " + prettyPhone(c.phone);
     document.getElementById("c-balance").innerHTML = '<span class="rs">Rs</span>' + fmt(s.bal);
     document.getElementById("c-bal-lbl").textContent = s.bal < 0 ? t.advance : t.balanceLbl;
@@ -306,7 +308,7 @@
     document.getElementById("ocr").hidden = true;
     editing = entry ? { phone: c.phone, id: entry.id } : null;
     pendingShot = entry ? entry.shot || null : null;
-    document.getElementById("entry-title").textContent = entry ? t.entryEdit : fill(t.entryNew, { name: c.name });
+    document.getElementById("entry-title").textContent = entry ? t.entryEdit : fill(t.entryNew, { name: shownName(c) });
     setType(entry ? (entry.type === "payment" ? "payment" : "credit") : type);
     document.getElementById("entry-amount").value = entry ? entry.amount : "";
     document.getElementById("entry-date").value = entry ? entry.date : TODAY_ISO;
