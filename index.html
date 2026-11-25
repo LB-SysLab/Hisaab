@@ -181,6 +181,11 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
 .field input[type="text"], .field input[type="tel"], .field input[type="number"], .field input[type="date"], .field input:not([type]) { width: 100%; min-height: 50px; border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; background: var(--bg); font-size: 16px; }
 .field input:focus { border-color: var(--b2); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--b2) 25%, transparent); }
 .hint { font-size: 13px; color: var(--muted); }
+.tl { display: flex; flex-direction: column; gap: 4px; }
+.tl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.tl-prev { font-size: 17px; font-weight: 600; color: var(--b2); min-width: 0; overflow-wrap: anywhere; }
+.tl-toggle { margin-left: auto; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); font-size: 13px; font-weight: 600; }
+.tl-toggle[aria-pressed="true"] { background: color-mix(in srgb, var(--b2) 14%, var(--surface)); border-color: var(--b2); color: var(--b2); }
 .err { font-size: 13.5px; color: var(--owe); font-weight: 600; background: var(--owe-soft); padding: 8px 12px; border-radius: 10px; }
 .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .seg label { display: flex; align-items: center; justify-content: center; min-height: 50px; border-radius: 12px; border: 1.5px solid var(--line); font-weight: 600; cursor: pointer; text-align: center; padding: 4px 8px; }
@@ -326,7 +331,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
     <h2 data-t="addCustomerTitle">New customer</h2>
     <div class="field">
       <label for="cust-name" data-t="name">Name</label>
-      <input id="cust-name" type="text" autocomplete="off" maxlength="60">
+      <input id="cust-name" type="text" autocomplete="off" maxlength="60" data-translit autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="field">
       <label for="cust-phone" data-t="phone">Mobile number</label>
@@ -363,7 +368,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
     </div>
     <div class="field">
       <label for="entry-note" data-t="note">Note</label>
-      <input id="entry-note" type="text" maxlength="80" autocomplete="off">
+      <input id="entry-note" type="text" maxlength="80" autocomplete="off" data-translit autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="field" id="shot-field">
       <label for="shot-input" data-t="shot">Payment screenshot</label>
@@ -390,7 +395,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
     <h2 data-t="settings">Settings</h2>
     <div class="field">
       <label for="set-shop" data-t="shopName">Shop name</label>
-      <input id="set-shop" type="text" maxlength="60" autocomplete="off">
+      <input id="set-shop" type="text" maxlength="60" autocomplete="off" data-translit autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="field">
       <label for="set-upi" data-t="upi">UPI ID</label>
@@ -420,6 +425,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
   /* ---------- Words in three languages ---------- */
   var T = {
     en: {
+      tlOn: "Typing in local script: on", tlOff: "Typing in local script: off", tlHint: "", 
       app: "Hisaab", total: "Total to collect", customers: "Customers", add: "Add customer", back: "Back",
       sub: "from {n} customers · {late} overdue", search: "Search name or phone",
       all: "All", owe: "Owes money", late: "Overdue 30+ days",
@@ -451,6 +457,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
       msgUpi: " Pay by UPI: {link}", lastPaidLong: "Last payment: {date}", noPayLong: "No payment yet"
     },
     hi: {
+      tlOn: "हिंदी टाइपिंग: चालू", tlOff: "हिंदी टाइपिंग: बंद", tlHint: "अंग्रेज़ी अक्षरों में जैसा बोलते हैं वैसा लिखें, जैसे chaawal → चावल। लंबी आवाज़ के लिए aa, ee, oo लिखें। हिंदी कीबोर्ड से भी लिख सकते हैं।", 
       app: "हिसाब", total: "कुल बकाया", customers: "ग्राहक", add: "ग्राहक जोड़ें", back: "वापस",
       sub: "{n} ग्राहकों से · {late} देर से", search: "नाम या फ़ोन से खोजें",
       all: "सभी", owe: "बकाया है", late: "30+ दिन देर",
@@ -482,6 +489,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
       msgUpi: " UPI से भुगतान करें: {link}", lastPaidLong: "आखिरी भुगतान: {date}", noPayLong: "अभी तक कोई भुगतान नहीं"
     },
     te: {
+      tlOn: "తెలుగు టైపింగ్: ఆన్", tlOff: "తెలుగు టైపింగ్: ఆఫ్", tlHint: "ఇంగ్లీష్ అక్షరాలలో పలికినట్లు రాయండి, ఉదా: biyyam → బియ్యం. దీర్ఘాలకు aa, ee, oo వాడండి. తెలుగు కీబోర్డ్‌తో కూడా రాయవచ్చు.", 
       app: "హిసాబ్", total: "మొత్తం బాకీ", customers: "కస్టమర్లు", add: "కస్టమర్‌ను చేర్చండి", back: "వెనక్కి",
       sub: "{n} మంది కస్టమర్ల నుండి · {late} ఆలస్యం", search: "పేరు లేదా ఫోన్‌తో వెతకండి",
       all: "అందరూ", owe: "బాకీ ఉంది", late: "30+ రోజుల ఆలస్యం",
@@ -645,6 +653,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
     document.getElementById("entry-note").placeholder = t.notePh;
     document.getElementById("cust-phone").placeholder = "9000000101";
     document.getElementById("set-upi").placeholder = "shopname@okaxis";
+    if (typeof tlRefreshAll === "function") tlRefreshAll();
     document.getElementById("back-btn").setAttribute("aria-label", t.back);
     document.getElementById("settings-btn").setAttribute("aria-label", t.settings);
     document.getElementById("add-credit").innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>' + esc(t.gave);
@@ -740,6 +749,122 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
     }).join("");
   }
 
+  /* ---------- Phonetic typing: English letters -> Telugu / Hindi script (works offline) ---------- */
+  var SCRIPTS = {
+    te: {
+      vow: { a: ["అ", ""], aa: ["ఆ", "ా"], i: ["ఇ", "ి"], ii: ["ఈ", "ీ"], u: ["ఉ", "ు"], uu: ["ఊ", "ూ"], e: ["ఎ", "ె"], ee_: ["ఏ", "ే"], ai: ["ఐ", "ై"], o: ["ఒ", "ొ"], oo_: ["ఓ", "ో"], au: ["ఔ", "ౌ"] },
+      con: { k: "క", kh: "ఖ", g: "గ", gh: "ఘ", c: "క", ch: "చ", chh: "ఛ", j: "జ", jh: "ఝ", t: "ట", th: "త", T: "ట", Th: "ఠ", d: "ద", dh: "ధ", D: "డ", Dh: "ఢ", n: "న", N: "ణ", p: "ప", ph: "ఫ", f: "ఫ", b: "బ", bh: "భ", m: "మ", y: "య", r: "ర", l: "ల", L: "ళ", v: "వ", w: "వ", sh: "శ", Sh: "ష", s: "స", h: "హ", z: "జ", q: "క", ksh: "క్ష", x: "క్స" },
+      virama: "్", anusvara: "ం", finalVirama: true
+    },
+    hi: {
+      vow: { a: ["अ", ""], aa: ["आ", "ा"], i: ["इ", "ि"], ii: ["ई", "ी"], u: ["उ", "ु"], uu: ["ऊ", "ू"], e: ["ए", "े"], ee_: ["ए", "े"], ai: ["ऐ", "ै"], o: ["ओ", "ो"], oo_: ["ओ", "ो"], au: ["औ", "ौ"] },
+      con: { k: "क", kh: "ख", g: "ग", gh: "घ", c: "क", ch: "च", chh: "छ", j: "ज", jh: "झ", t: "त", th: "थ", T: "ट", Th: "ठ", d: "द", dh: "ध", D: "ड", Dh: "ढ", n: "न", N: "ण", p: "प", ph: "फ", f: "फ़", b: "ब", bh: "भ", m: "म", y: "य", r: "र", l: "ल", L: "ळ", v: "व", w: "व", sh: "श", Sh: "ष", s: "स", h: "ह", z: "ज़", q: "क़", ksh: "क्ष", x: "क्स" },
+      virama: "्", anusvara: "ं", finalVirama: false
+    }
+  };
+  // Vowel spellings people type, longest first
+  var VOW_KEYS = [["aa", "aa"], ["ai", "ai"], ["au", "au"], ["ou", "au"], ["ee", "ii"], ["ii", "ii"], ["oo", "uu"], ["uu", "uu"], ["A", "aa"], ["I", "ii"], ["U", "uu"], ["E", "ee_"], ["O", "oo_"], ["a", "a"], ["i", "i"], ["u", "u"], ["e", "e"], ["o", "o"]];
+  var CON_KEYS = ["ksh", "chh", "Sh", "Th", "Dh", "kh", "gh", "ch", "jh", "th", "dh", "ph", "bh", "sh", "T", "D", "N", "L", "k", "g", "c", "j", "t", "d", "n", "p", "f", "b", "m", "y", "r", "l", "v", "w", "s", "h", "z", "q", "x"];
+  function matchAt(word, i, keys) {
+    for (var k = 0; k < keys.length; k++) {
+      var key = Array.isArray(keys[k]) ? keys[k][0] : keys[k];
+      if (word.substr(i, key.length) === key) return keys[k];
+      if (/[A-Z]/.test(key)) continue;
+      if (word.substr(i, key.length).toLowerCase() === key && !hasCapKey(word, i, keys)) return keys[k];
+    }
+    return null;
+  }
+  function hasCapKey(word, i, keys) {
+    for (var k = 0; k < keys.length; k++) { var key = Array.isArray(keys[k]) ? keys[k][0] : keys[k]; if (/[A-Z]/.test(key) && word.substr(i, key.length) === key) return true; }
+    return false;
+  }
+  function translitWord(word, code) {
+    var S = SCRIPTS[code]; if (!S) return word;
+    // A capital first letter is usually the phone's auto-capital, not a sound choice
+    word = word.charAt(0).toLowerCase() + word.slice(1);
+    word = word.replace(/([^aeiouAEIOU])y$/, "$1i");
+    var out = "", i = 0, prevCon = false;
+    while (i < word.length) {
+      var v = matchAt(word, i, VOW_KEYS);
+      if (v) {
+        var pair = S.vow[v[1]];
+        out += prevCon ? pair[1] : pair[0];
+        prevCon = false; i += v[0].length; continue;
+      }
+      var c = matchAt(word, i, CON_KEYS);
+      if (c) {
+        var next = i + c.length;
+        var nextIsCon = next < word.length && !matchAt(word, next, VOW_KEYS) && matchAt(word, next, CON_KEYS);
+        if (prevCon) out += S.virama;
+        // n or m before another consonant becomes the round nasal sign (venkat -> వెంకట్)
+        if ((c === "n" || c === "m") && nextIsCon) {
+          var nc = matchAt(word, next, CON_KEYS);
+          if (nc !== c && nc !== "y" && nc !== "r" && nc !== "v" && nc !== "w" && nc !== "h") { out += S.anusvara; prevCon = false; i = next; continue; }
+        }
+        out += S.con[c]; prevCon = true; i = next; continue;
+      }
+      if (prevCon && S.finalVirama) out += S.virama;
+      out += word.charAt(i); prevCon = false; i++;
+    }
+    if (prevCon && S.finalVirama) {
+      // Telugu words ending in "m" usually end in the round nasal sign (biyyam -> బియ్యం)
+      if (code === "te" && /[aeiou]m$/i.test(word) && out.slice(-1) === S.con.m) out = out.slice(0, -1) + S.anusvara;
+      else out += S.virama;
+    }
+    return out;
+  }
+  function translitText(text, code, skipLast) {
+    var parts = String(text).split(/([A-Za-z]+)/);
+    var lastWord = -1;
+    if (skipLast) for (var j = parts.length - 1; j >= 0; j--) { if (/^[A-Za-z]+$/.test(parts[j])) { if (j === parts.length - 1 || parts[j + 1] === "") lastWord = j; break; } }
+    return parts.map(function (p, j) { return /^[A-Za-z]+$/.test(p) && j !== lastWord ? translitWord(p, code) : p; }).join("");
+  }
+
+  var TL_KEY = "hisaab-typing";
+  var tlOn = true;
+  try { if (localStorage.getItem(TL_KEY) === "off") tlOn = false; } catch (e) {}
+  function tlActive() { return tlOn && (lang === "te" || lang === "hi"); }
+  function tlConvert(el, skipLast) {
+    if (!tlActive()) return;
+    var v = el.value, nv = translitText(v, lang, skipLast);
+    if (nv !== v) { el.value = nv; try { el.setSelectionRange(nv.length, nv.length); } catch (e) {} }
+  }
+  function tlPreview(el) {
+    var box = document.getElementById(el.id + "-tl"); if (!box) return;
+    var prev = box.querySelector(".tl-prev");
+    box.hidden = !(lang === "te" || lang === "hi");
+    if (!tlActive()) { prev.textContent = ""; return; }
+    var conv = translitText(el.value, lang);
+    prev.textContent = /[A-Za-z]/.test(el.value) ? "→ " + conv : "";
+  }
+  function tlRefreshAll() {
+    var t = T[lang];
+    document.querySelectorAll("[data-translit]").forEach(function (el) {
+      var box = document.getElementById(el.id + "-tl"); if (!box) return;
+      var btn = box.querySelector(".tl-toggle");
+      btn.textContent = tlOn ? t.tlOn : t.tlOff;
+      btn.setAttribute("aria-pressed", String(tlOn));
+      box.querySelector(".tl-hint").textContent = t.tlHint;
+      box.querySelector(".tl-hint").hidden = !tlOn;
+      tlPreview(el);
+    });
+  }
+  document.querySelectorAll("[data-translit]").forEach(function (el) {
+    var box = document.createElement("div");
+    box.className = "tl"; box.id = el.id + "-tl";
+    box.innerHTML = '<div class="tl-row"><span class="tl-prev" aria-live="polite"></span><button type="button" class="tl-toggle"></button></div><span class="tl-hint hint"></span>';
+    el.insertAdjacentElement("afterend", box);
+    box.querySelector(".tl-toggle").addEventListener("click", function () {
+      tlOn = !tlOn; try { localStorage.setItem(TL_KEY, tlOn ? "on" : "off"); } catch (e) {}
+      tlRefreshAll(); el.focus();
+    });
+    el.addEventListener("input", function (e) {
+      if (/[\s,.;:\/-]$/.test(el.value)) tlConvert(el, false); else tlConvert(el, true);
+      tlPreview(el);
+    });
+    el.addEventListener("blur", function () { tlConvert(el, false); tlPreview(el); });
+  });
+
   /* ---------- Toast ---------- */
   var toastTimer;
   function toast(msg) {
@@ -749,7 +874,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
   }
 
   /* ---------- Sheets ---------- */
-  function openSheet(id) { document.getElementById(id).hidden = false; var f = document.querySelector("#" + id + " input:not([type=radio]):not([type=file])"); if (f) setTimeout(function () { try { f.focus(); } catch (e) {} }, 60); }
+  function openSheet(id) { document.getElementById(id).hidden = false; tlRefreshAll(); var f = document.querySelector("#" + id + " input:not([type=radio]):not([type=file])"); if (f) setTimeout(function () { try { f.focus(); } catch (e) {} }, 60); }
   function closeSheets() { document.querySelectorAll(".sheet-wrap").forEach(function (w) { w.hidden = true; }); }
   document.querySelectorAll(".sheet-wrap").forEach(function (w) {
     w.addEventListener("click", function (e) { if (e.target === w || e.target.hasAttribute("data-close")) closeSheets(); });
@@ -765,6 +890,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
   document.getElementById("cust-form").addEventListener("submit", function (e) {
     e.preventDefault();
     var t = T[lang];
+    tlConvert(document.getElementById("cust-name"), false);
     var name = document.getElementById("cust-name").value.trim().replace(/\s+/g, " ");
     var rawPhone = document.getElementById("cust-phone").value.trim();
     var phone = rawPhone.replace(/[\s-]/g, "");
@@ -895,6 +1021,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
     var type = document.getElementById("type-payment").checked ? "payment" : "credit";
     var amount = parseFloat(String(document.getElementById("entry-amount").value).replace(/,/g, ""));
     var date = document.getElementById("entry-date").value;
+    tlConvert(document.getElementById("entry-note"), false);
     var note = document.getElementById("entry-note").value.trim();
     var err = document.getElementById("entry-err");
     if (!(amount > 0)) { err.textContent = t.errAmount; err.hidden = false; return; }
@@ -1058,6 +1185,7 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
   document.getElementById("upi-fix").addEventListener("click", openSettings);
   document.getElementById("settings-form").addEventListener("submit", function (e) {
     e.preventDefault();
+    tlConvert(document.getElementById("set-shop"), false);
     state.shop.name = document.getElementById("set-shop").value.trim();
     var u = document.getElementById("set-upi").value.trim();
     state.shop.upi = u || UPI_PLACEHOLDER;
