@@ -23,6 +23,9 @@
   function plain(n) { var v = Math.round(Number(n) * 100) / 100; return String(v); }
   // The customer name as shown in the chosen language (saved name stays as typed)
   function shownName(c) { return Core.displayName(c.name, lang); }
+  // Shop name and notes as shown in the chosen language (saved text stays as typed)
+  function shownText(s) { return Core.displayText(s, lang); }
+  function shownShop() { return shownText(state.shop.name || ""); }
   function initials(n) { return String(n || "?").trim().split(/\s+/).map(function (p) { return p[0] || ""; }).join("").slice(0, 2).toUpperCase() || "?"; }
   function prettyPhone(p) { p = String(p || ""); return p.length === 10 ? p.slice(0, 5) + " " + p.slice(5) : p; }
   var Core = HisaabCore;
@@ -71,7 +74,7 @@
     var t = T[lang];
     var upi = state.shop.upi || UPI_PLACEHOLDER;
     var link = "upi://pay?pa=" + upi + "&pn=" + encodeURIComponent(state.shop.name || "Shop") + "&am=" + plain(s.bal) + "&cu=INR";
-    var msg = fill(t.msg, { name: shownName(c), shop: state.shop.name || t.app, amt: plain(s.bal), upi: fill(t.msgUpi, { link: link }) });
+    var msg = fill(t.msg, { name: shownName(c), shop: shownShop() || t.app, amt: plain(s.bal), upi: fill(t.msgUpi, { link: link }) });
     return "https://wa.me/91" + c.phone + "?text=" + encodeURIComponent(msg);
   }
   var waIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 2.9 2.9 0 0 0-.9 2.2 5 5 0 0 0 1 2.7 11.5 11.5 0 0 0 4.4 3.9c1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.3Z"/></svg>';
@@ -99,6 +102,8 @@
     document.querySelectorAll("[data-t]").forEach(function (el) { var k = el.getAttribute("data-t"); if (t[k] != null) el.textContent = t[k]; });
     document.querySelectorAll("[data-lang]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.lang === lang)); });
     document.getElementById("search").placeholder = t.search;
+    document.getElementById("search").setAttribute("aria-label", t.search);
+    document.querySelector(".langs").setAttribute("aria-label", t.langLbl);
     document.getElementById("entry-note").placeholder = t.notePh;
     document.getElementById("cust-phone").placeholder = "9000000101";
     document.getElementById("set-upi").placeholder = "shopname@okaxis";
@@ -111,7 +116,8 @@
 
   function render() {
     applyWords();
-    document.getElementById("shop-name").textContent = state.shop.name || "";
+    document.getElementById("shop-name").textContent = shownShop();
+    document.title = T[lang].app;
     var phone = currentPhone();
     var c = phone ? findCust(phone) : null;
     if (phone && !c) { history.replaceState(null, "", location.pathname + location.search); phone = null; }
@@ -134,7 +140,7 @@
     total = Math.round(total * 100) / 100;
     var owing = rows.filter(function (r) { return r.s.bal > 0; });
     var late = rows.filter(function (r) { return r.s.late; });
-    document.getElementById("total-outstanding").innerHTML = '<span class="rs">Rs</span>' + fmt(total);
+    document.getElementById("total-outstanding").innerHTML = '<span class="rs">' + esc(t.rs) + '</span>' + fmt(total);
     document.getElementById("total-sub").innerHTML = fill(esc(t.sub), { n: owing.length, late: "<b>" + late.length + "</b>" });
     [["all", rows.length], ["owe", owing.length], ["late", late.length]].forEach(function (p) {
       var b = document.getElementById("f-" + p[0]);
@@ -166,7 +172,7 @@
       return '<li class="card" data-customer="' + ph + '">' +
         '<div class="av t' + ((Number(String(c.phone).slice(-1)) || 0) % 5 + 1) + '" aria-hidden="true">' + esc(initials(shownName(c))) + "</div>" +
         '<div class="who"><a class="nm" href="#c-' + ph + '">' + esc(shownName(c)) + '</a><div class="ph">' + esc(prettyPhone(c.phone)) + "</div></div>" +
-        '<div class="bal' + balClass(s.bal) + '" data-balance="' + s.bal + '">Rs ' + fmt(s.bal) + "</div>" +
+        '<div class="bal' + balClass(s.bal) + '" data-balance="' + s.bal + '">' + esc(t.rs) + ' ' + fmt(s.bal) + "</div>" +
         '<div class="meta">' + statusTag(s) + remind + "</div></li>";
     }).join("");
   }
@@ -176,7 +182,7 @@
     document.getElementById("list").innerHTML = "";
     document.getElementById("c-name").textContent = shownName(c);
     document.getElementById("c-phone").textContent = "+91 " + prettyPhone(c.phone);
-    document.getElementById("c-balance").innerHTML = '<span class="rs">Rs</span>' + fmt(s.bal);
+    document.getElementById("c-balance").innerHTML = '<span class="rs">' + esc(t.rs) + '</span>' + fmt(s.bal);
     document.getElementById("c-bal-lbl").textContent = s.bal < 0 ? t.advance : t.balanceLbl;
     document.getElementById("c-last").textContent = s.lastPay ? fill(t.lastPaidLong, { date: prettyDate(s.lastPay) }) : t.noPayLong;
     var r = document.getElementById("c-remind");
@@ -190,8 +196,8 @@
       var k = e.type === "payment" ? "payment" : "credit";
       return '<li class="entry" data-entry="' + esc(e.id) + '" data-type="' + k + '" data-date="' + esc(e.date) + '">' +
         '<div><div class="when">' + esc(prettyDate(e.date)) + '</div><div class="what"><span class="kind ' + k + '">' + esc(k === "payment" ? t.paymentShort : t.creditShort) + "</span></div>" +
-        (e.note ? '<div class="note">' + esc(e.note) + "</div>" : "") + "</div>" +
-        '<div class="amt ' + k + '" data-amount="' + esc(e.amount) + '">' + (k === "payment" ? "− " : "+ ") + "Rs " + fmt(e.amount) + "</div>" +
+        (e.note ? '<div class="note">' + esc(shownText(e.note)) + "</div>" : "") + "</div>" +
+        '<div class="amt ' + k + '" data-amount="' + esc(e.amount) + '">' + (k === "payment" ? "− " : "+ ") + esc(t.rs) + " " + fmt(e.amount) + "</div>" +
         '<div class="row2">' + (e.shot ? '<img class="thumb" data-shot src="' + esc(e.shot) + '" alt="' + esc(t.shot) + '">' : "<span></span>") +
         '<div class="entry-acts"><button type="button" class="mini" data-edit="' + esc(e.id) + '">' + esc(t.edit) + '</button>' +
         '<button type="button" class="mini danger" data-del="' + esc(e.id) + '">' + esc(t.del) + "</button></div></div></li>";
@@ -283,7 +289,7 @@
     err.hidden = true;
     state.customers.push({ name: name, phone: phone, entries: [] });
     save(); closeSheets(); filter = "all"; query = ""; document.getElementById("search").value = "";
-    render(); toast(fill(t.addedCustomer, { name: name }));
+    render(); toast(fill(t.addedCustomer, { name: Core.displayName(name, lang) }));
   });
 
   /* Entry form */

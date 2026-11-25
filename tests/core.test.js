@@ -127,3 +127,17 @@ test("names show in Telugu or Hindi letters; English and saved names stay the sa
   }
   assert.equal(Core.displayName("సీత లక్ష్మి", "hi"), "సీత లక్ష్మి", "names already in a script are left alone");
 });
+
+test("shop name and notes show in Telugu or Hindi; English and saved text stay the same", () => {
+  const want = {
+    "groceries": ["సరుకులు", "किराना सामान"], "paid on UPI": ["యూపీఐ ద్వారా చెల్లించారు", "यूपीआई से भुगतान किया"],
+    "Lakshmi Provision Store (fictional)": ["లక్ష్మి ప్రొవిజన్ స్టోర్ (కల్పితం)", "लक्ष्मी प्रोविज़न स्टोर (काल्पनिक)"],
+    "rice, dal and milk": ["బియ్యం, పప్పు మరియు పాలు", "चावल, दाल और दूध"], "paid by cash": ["నగదుగా చెల్లించారు", "नकद भुगतान किया"]
+  };
+  for (const k in want) {
+    assert.deepEqual([Core.displayText(k, "te"), Core.displayText(k, "hi")], want[k], k);
+    assert.equal(Core.displayText(k, "en"), k);
+  }
+  assert.equal(Core.displayText("బియ్యం", "te"), "బియ్యం", "text already in a script is left alone");
+  assert.equal(Core.displayText("", "te"), "");
+});

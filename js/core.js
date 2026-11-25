@@ -269,11 +269,39 @@
     });
   }
 
+
+  /* ---------- Shop name and notes shown in Telugu / Hindi (display only; saved text never changes) ---------- */
+  // Everyday note and shop-board words. Notes are translated; shop-board words are written as people say them.
+  var TEXT_WORDS = { "groceries": ["సరుకులు", "किराना सामान"], "grocery": ["సరుకులు", "किराना"], "items": ["సరుకులు", "सामान"], "goods": ["సరుకులు", "सामान"], "paid": ["చెల్లించారు", "भुगतान किया"], "payment": ["చెల్లింపు", "भुगतान"], "cash": ["నగదు", "नकद"], "advance": ["అడ్వాన్స్", "एडवांस"], "balance": ["బాకీ", "बकाया"], "pending": ["బాకీ", "बाकी"], "old": ["పాత", "पुराना"], "part": ["కొంత", "आंशिक"], "partial": ["కొంత", "आंशिक"], "monthly": ["నెలవారీ", "महीने का"], "month": ["నెల", "महीना"], "and": ["మరియు", "और"], "for": ["కోసం", "के लिए"], "upi": ["యూపీఐ", "यूपीआई"], "gpay": ["జీపే", "जीपे"], "phonepe": ["ఫోన్‌పే", "फ़ोनपे"], "paytm": ["పేటీఎం", "पेटीएम"], "rice": ["బియ్యం", "चावल"], "dal": ["పప్పు", "दाल"], "milk": ["పాలు", "दूध"], "oil": ["నూనె", "तेल"], "sugar": ["చక్కెర", "चीनी"], "salt": ["ఉప్పు", "नमक"], "tea": ["టీ", "चाय"], "coffee": ["కాఫీ", "कॉफ़ी"], "eggs": ["గుడ్లు", "अंडे"], "egg": ["గుడ్డు", "अंडा"], "bread": ["బ్రెడ్", "ब्रेड"], "vegetables": ["కూరగాయలు", "सब्ज़ियाँ"], "soap": ["సబ్బు", "साबुन"], "biscuits": ["బిస్కెట్లు", "बिस्कुट"], "atta": ["గోధుమ పిండి", "आटा"], "flour": ["పిండి", "आटा"], "wheat": ["గోధుమలు", "गेहूँ"], "onions": ["ఉల్లిపాయలు", "प्याज़"], "onion": ["ఉల్లిపాయ", "प्याज़"], "potatoes": ["బంగాళదుంపలు", "आलू"], "ghee": ["నెయ్యి", "घी"], "curd": ["పెరుగు", "दही"], "snacks": ["చిరుతిళ్ళు", "नमकीन"], "water": ["నీళ్ళు", "पानी"], "chocolate": ["చాక్లెట్", "चॉकलेट"], "detergent": ["డిటర్జెంట్", "डिटर्जेंट"], "shampoo": ["షాంపూ", "शैम्पू"], "toothpaste": ["టూత్‌పేస్ట్", "टूथपेस्ट"], "gas": ["గ్యాస్", "गैस"], "recharge": ["రీఛార్జ్", "रिचार्ज"], "store": ["స్టోర్", "स्टोर"], "stores": ["స్టోర్స్", "स्टोर्स"], "provision": ["ప్రొవిజన్", "प्रोविज़न"], "provisions": ["ప్రొవిజన్స్", "प्रोविज़न्स"], "general": ["జనరల్", "जनरल"], "kirana": ["కిరాణా", "किराना"], "shop": ["షాప్", "शॉप"], "traders": ["ట్రేడర్స్", "ट्रेडर्स"], "mart": ["మార్ట్", "मार्ट"], "super": ["సూపర్", "सुपर"], "market": ["మార్కెట్", "मार्केट"], "supermarket": ["సూపర్‌మార్కెట్", "सुपरमार्केट"], "enterprises": ["ఎంటర్‌ప్రైజెస్", "एंटरप्राइज़ेज़"], "agency": ["ఏజెన్సీ", "एजेंसी"], "agencies": ["ఏజెన్సీస్", "एजेंसीज़"], "centre": ["సెంటర్", "सेंटर"], "center": ["సెంటర్", "सेंटर"], "medical": ["మెడికల్", "मेडिकल"], "fancy": ["ఫ్యాన్సీ", "फैंसी"], "bakery": ["బేకరీ", "बेकरी"], "sweets": ["స్వీట్స్", "स्वीट्स"], "dairy": ["డెయిరీ", "डेयरी"], "new": ["న్యూ", "न्यू"], "fictional": ["కల్పితం", "काल्पनिक"], "sample": ["నమూనా", "नमूना"], "demo": ["డెమో", "डेमो"] };
+  // Whole notes or word pairs that read better as one phrase
+  var TEXT_PHRASES = { "paid by cash": ["నగదుగా చెల్లించారు", "नकद भुगतान किया"], "paid in cash": ["నగదుగా చెల్లించారు", "नकद भुगतान किया"], "paid on upi": ["యూపీఐ ద్వారా చెల్లించారు", "यूपीआई से भुगतान किया"], "google pay": ["గూగుల్ పే", "गूगल पे"], "phone pe": ["ఫోన్‌పే", "फ़ोनपे"] };
+  function displayText(text, code) {
+    if (code !== "te" && code !== "hi") return String(text == null ? "" : text);
+    var col = code === "te" ? 0 : 1, s = String(text == null ? "" : text);
+    var whole = s.trim().toLowerCase().replace(/\s+/g, " ");
+    if (TEXT_PHRASES.hasOwnProperty(whole)) return TEXT_PHRASES[whole][col];
+    // "paid by cash", "paid via GPay" ...: how it was paid comes first, then "paid"
+    var how = /^paid\s+(?:on|by|via|in|through|using|with)\s+(.+)$/i.exec(s.trim());
+    if (how) return displayText(how[1], code) + (code === "te" ? " ద్వారా చెల్లించారు" : " से भुगतान किया");
+    Object.keys(TEXT_PHRASES).forEach(function (k) {
+      if (k.indexOf(" ") > -1) s = s.replace(new RegExp("\\b" + k.replace(/ /g, "\\s+") + "\\b", "gi"), TEXT_PHRASES[k][col]);
+    });
+    return s.replace(/[A-Za-z]+/g, function (w) {
+      var key = w.toLowerCase();
+      if (TEXT_WORDS.hasOwnProperty(key)) return TEXT_WORDS[key][col];
+      if (NAME_WORDS.hasOwnProperty(key)) return NAME_WORDS[key][col];
+      // Short capitals like "ABC" are read letter by letter
+      if (w.length <= 4 && w === w.toUpperCase()) return w.toLowerCase().split("").map(function (ch) { return LETTERS[ch][col]; }).join("");
+      if (key.length === 1 && LETTERS[key]) return LETTERS[key][col];
+      return translitWord(w, code, true);
+    });
+  }
+
   return {
     pad: pad, isoOf: isoOf, parseISO: parseISO, todayFrom: todayFrom, daysBetween: daysBetween,
     OVERDUE_DAYS: OVERDUE_DAYS, summarise: summarise, totalOutstanding: totalOutstanding, sortedEntries: sortedEntries, overdueList: overdueList,
     cleanPhone: cleanPhone, isValidPhone: isValidPhone,
     uid: uid, nextSeq: nextSeq, noteSeq: noteSeq,
-    parseShop: parseShop, buildCsv: buildCsv, pickAmount: pickAmount, translitText: translitText, displayName: displayName
+    parseShop: parseShop, buildCsv: buildCsv, pickAmount: pickAmount, translitText: translitText, displayName: displayName, displayText: displayText
   };
 });
