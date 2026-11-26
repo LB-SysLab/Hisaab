@@ -55,7 +55,26 @@
   }
 
   /* ---------- Customer checks ---------- */
-  function cleanPhone(v) { return String(v == null ? "" : v).trim().replace(/[\s-]/g, ""); }
+  // Spaces and dashes are ignored; a +91 / 91 / 0 in front of a 10-digit number is dropped
+  function cleanPhone(v) {
+    var p = String(v == null ? "" : v).trim().replace(/[\s-]/g, "");
+    var m = /^(?:\+?91|0)(\d{10})$/.exec(p);
+    return m ? m[1] : p;
+  }
+  // A name needs at least one letter (any language): "12345" or "@@##" is refused
+  function hasLetter(v) { return /\p{L}/u.test(String(v || "")); }
+  var MAX_AMOUNT = 1000000; // Rs 10,00,000 for one entry
+  // "" ok | "zero" | "max" | "format"
+  function amountProblem(raw) {
+    var t = String(raw == null ? "" : raw).trim().replace(/,/g, "");
+    var n = parseFloat(t);
+    if (!(n > 0)) return "zero";
+    if (!/^\d+(\.\d{1,2})?$/.test(t)) return "format";
+    if (n > MAX_AMOUNT) return "max";
+    return "";
+  }
+  // name@bank, for example shopname@okaxis
+  function isValidUpi(v) { return /^[A-Za-z0-9._-]{2,256}@[A-Za-z][A-Za-z0-9.]{1,63}$/.test(String(v || "").trim()); }
   function isValidPhone(v) { return /^\d{10}$/.test(cleanPhone(v)); }
 
   /* ---------- Ids ---------- */
@@ -381,7 +400,7 @@
   return {
     pad: pad, isoOf: isoOf, parseISO: parseISO, todayFrom: todayFrom, daysBetween: daysBetween,
     OVERDUE_DAYS: OVERDUE_DAYS, summarise: summarise, totalOutstanding: totalOutstanding, sortedEntries: sortedEntries, overdueList: overdueList,
-    cleanPhone: cleanPhone, isValidPhone: isValidPhone,
+    cleanPhone: cleanPhone, isValidPhone: isValidPhone, hasLetter: hasLetter, amountProblem: amountProblem, isValidUpi: isValidUpi, MAX_AMOUNT: MAX_AMOUNT,
     uid: uid, nextSeq: nextSeq, noteSeq: noteSeq,
     parseShop: parseShop, buildCsv: buildCsv, pickAmount: pickAmount, translitText: translitText, displayName: displayName, displayText: displayText, scriptOf: scriptOf, toEnglish: toEnglish, shownIn: shownIn
   };

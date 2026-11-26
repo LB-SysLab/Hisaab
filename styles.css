@@ -169,6 +169,8 @@ textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border
 .tl-prev { font-size: 17px; font-weight: 600; color: var(--b2); min-width: 0; overflow-wrap: anywhere; }
 .tl-toggle { margin-left: auto; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); font-size: 13px; font-weight: 600; }
 .tl-toggle[aria-pressed="true"] { background: color-mix(in srgb, var(--b2) 14%, var(--surface)); border-color: var(--b2); color: var(--b2); }
+.field > .err { margin-top: 2px; }
+.field input.bad, .field input.bad:focus { border-color: var(--owe); box-shadow: 0 0 0 3px var(--owe-soft); }
 .err { font-size: 13.5px; color: var(--owe); font-weight: 600; background: var(--owe-soft); padding: 8px 12px; border-radius: 10px; }
 .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .seg label { display: flex; align-items: center; justify-content: center; min-height: 50px; border-radius: 12px; border: 1.5px solid var(--line); font-weight: 600; cursor: pointer; text-align: center; padding: 4px 8px; }

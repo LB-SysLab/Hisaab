@@ -264,9 +264,36 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.hidden = true; }, 2800);
   }
 
+  /* ---------- Field errors: red message right under the wrong box ---------- */
+  function fieldErr(errId, input, msg) {
+    var err = document.getElementById(errId), form = err.closest("form");
+    clearErr(errId);
+    var field = input.closest(".field");
+    field.appendChild(err);
+    err.textContent = msg; err.hidden = false;
+    input.classList.add("bad"); input.setAttribute("aria-invalid", "true"); input.setAttribute("aria-describedby", errId);
+    try { input.focus(); } catch (e) {}
+  }
+  function clearErr(errId) {
+    var err = document.getElementById(errId), form = err.closest("form");
+    err.hidden = true; err.textContent = "";
+    form.querySelectorAll(".bad").forEach(function (el) { el.classList.remove("bad"); el.removeAttribute("aria-invalid"); el.removeAttribute("aria-describedby"); });
+  }
+  // Typing in a box that was marked wrong clears the mark
+  ["cust-err", "entry-err", "set-err"].forEach(function (id) {
+    var form = document.getElementById(id).closest("form");
+    form.addEventListener("input", function (e) { if (e.target.classList && e.target.classList.contains("bad") && e.target.id !== "cust-phone") clearErr(id); });
+  });
+  // The phone box takes numbers only: letters are removed as they are typed, with a message
+  document.getElementById("cust-phone").addEventListener("input", function () {
+    var el = this, v = el.value, clean = v.replace(/[^\d\s+-]/g, "");
+    if (clean !== v) { el.value = clean; fieldErr("cust-err", el, T[lang].errPhoneTyped); }
+    else if (el.classList.contains("bad")) clearErr("cust-err");
+  });
+
   /* ---------- Sheets ---------- */
   function openSheet(id) { tlTyped = {}; document.getElementById(id).hidden = false; tlRefreshAll(); var f = document.querySelector("#" + id + " input:not([type=radio]):not([type=file])"); if (f) setTimeout(function () { try { f.focus(); } catch (e) {} }, 60); }
-  function closeSheets() { document.querySelectorAll(".sheet-wrap").forEach(function (w) { w.hidden = true; }); }
+  function closeSheets() { document.querySelectorAll(".sheet-wrap").forEach(function (w) { w.hidden = true; }); ["cust-err", "entry-err", "set-err"].forEach(clearErr); }
   document.querySelectorAll(".sheet-wrap").forEach(function (w) {
     w.addEventListener("click", function (e) { if (e.target === w || e.target.hasAttribute("data-close")) closeSheets(); });
   });
@@ -275,7 +302,7 @@
   /* Add customer */
   document.getElementById("add-cust-btn").addEventListener("click", function () {
     document.getElementById("cust-form").reset();
-    document.getElementById("cust-err").hidden = true;
+    clearErr("cust-err");
     openSheet("sheet-cust");
   });
   document.getElementById("cust-form").addEventListener("submit", function (e) {
@@ -285,13 +312,12 @@
     var name = document.getElementById("cust-name").value.trim().replace(/\s+/g, " ");
     var rawPhone = document.getElementById("cust-phone").value.trim();
     var phone = Core.cleanPhone(rawPhone);
-    var err = document.getElementById("cust-err");
-    var msg = "";
-    if (!name) msg = t.errName;
-    else if (!Core.isValidPhone(phone)) msg = t.errPhone;
-    else if (findCust(phone)) msg = t.errDup;
-    if (msg) { err.textContent = msg; err.hidden = false; return; }
-    err.hidden = true;
+    var nameEl = document.getElementById("cust-name"), phoneEl = document.getElementById("cust-phone");
+    if (!name) return fieldErr("cust-err", nameEl, t.errName);
+    if (!Core.hasLetter(name)) return fieldErr("cust-err", nameEl, t.errNameLetter);
+    if (!Core.isValidPhone(phone)) return fieldErr("cust-err", phoneEl, t.errPhone);
+    if (findCust(phone)) return fieldErr("cust-err", phoneEl, t.errDup);
+    clearErr("cust-err");
     var cust = { name: name, phone: phone, entries: [] };
     var nameEn = englishOf(document.getElementById("cust-name"), "name"); if (nameEn) cust.nameEn = nameEn;
     state.customers.push(cust);
@@ -317,7 +343,8 @@
     var t = T[lang], c = findCust(currentPhone());
     if (!c) return;
     var f = document.getElementById("entry-form"); f.reset();
-    document.getElementById("entry-err").hidden = true;
+    clearErr("entry-err");
+    document.getElementById("entry-date").max = TODAY_ISO;
     document.getElementById("ocr").hidden = true;
     editing = entry ? { phone: c.phone, id: entry.id } : null;
     pendingShot = entry ? entry.shot || null : null;
@@ -399,15 +426,19 @@
     var t = T[lang];
     var c = findCust(currentPhone()); if (!c) return;
     var type = document.getElementById("type-payment").checked ? "payment" : "credit";
-    var amount = parseFloat(String(document.getElementById("entry-amount").value).replace(/,/g, ""));
+    var amtEl = document.getElementById("entry-amount"), dateEl = document.getElementById("entry-date");
+    var amount = parseFloat(String(amtEl.value).replace(/,/g, ""));
     var date = document.getElementById("entry-date").value;
     tlConvert(document.getElementById("entry-note"), false);
     var note = document.getElementById("entry-note").value.trim();
     var noteEn = englishOf(document.getElementById("entry-note"), "text");
-    var err = document.getElementById("entry-err");
-    if (!(amount > 0)) { err.textContent = t.errAmount; err.hidden = false; return; }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { err.textContent = t.errDate; err.hidden = false; return; }
-    err.hidden = true;
+    var prob = Core.amountProblem(amtEl.value);
+    if (prob === "zero") return fieldErr("entry-err", amtEl, t.errAmount);
+    if (prob === "format") return fieldErr("entry-err", amtEl, t.errAmountDec);
+    if (prob === "max") return fieldErr("entry-err", amtEl, t.errAmountMax);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return fieldErr("entry-err", dateEl, t.errDate);
+    if (date > TODAY_ISO) return fieldErr("entry-err", dateEl, t.errDateFuture);
+    clearErr("entry-err");
     var finish = function (shot) {
       var data = { type: type, amount: Math.round(amount * 100) / 100, date: date, note: note };
       if (noteEn) data.noteEn = noteEn;
@@ -482,12 +513,16 @@
     document.getElementById("set-shop").value = state.shop.name || "";
     document.getElementById("set-upi").value = upiOk() ? state.shop.upi : "";
     var b = document.getElementById("clear-all"); b.classList.remove("armed"); b.textContent = T[lang].clearAll;
+    clearErr("set-err");
     openSheet("sheet-settings");
   }
   document.getElementById("settings-btn").addEventListener("click", openSettings);
   document.getElementById("upi-fix").addEventListener("click", openSettings);
   document.getElementById("settings-form").addEventListener("submit", function (e) {
     e.preventDefault();
+    var upiEl = document.getElementById("set-upi");
+    if (upiEl.value.trim() && !Core.isValidUpi(upiEl.value)) return fieldErr("set-err", upiEl, T[lang].errUpi);
+    clearErr("set-err");
     tlConvert(document.getElementById("set-shop"), false);
     state.shop.name = document.getElementById("set-shop").value.trim();
     var shopEn = englishOf(document.getElementById("set-shop"), "shop"); if (shopEn) state.shop.nameEn = shopEn; else delete state.shop.nameEn;

@@ -153,3 +153,23 @@ test("names and notes typed in Telugu or Hindi show in English letters in Englis
   assert.equal(Core.shownIn("రవి కుమార్", "", "te", "name"), "రవి కుమార్", "own language keeps the saved spelling");
   assert.equal(Core.shownIn("Ravi Kumar", undefined, "en", "name"), "Ravi Kumar", "English names never change");
 });
+
+test("field checks: phone, name, amount and UPI ID", () => {
+  assert.ok(Core.isValidPhone("+91 98765 43210"), "+91 in front is fine");
+  assert.ok(Core.isValidPhone("09876543210"), "0 in front is fine");
+  assert.ok(Core.isValidPhone("98765-43210"));
+  assert.ok(!Core.isValidPhone("98765432101"), "11 digits without a 0 or 91 in front is refused");
+  assert.equal(Core.cleanPhone("+91 98765 43210"), "9876543210");
+  assert.ok(Core.hasLetter("Ravi Kumar") && Core.hasLetter("రవి") && Core.hasLetter("रवि"));
+  assert.ok(!Core.hasLetter("12345") && !Core.hasLetter("@@##"));
+  assert.equal(Core.amountProblem("250"), "");
+  assert.equal(Core.amountProblem("150.50"), "");
+  assert.equal(Core.amountProblem("1000000"), "");
+  assert.equal(Core.amountProblem("1000000.01"), "max");
+  assert.equal(Core.amountProblem("12.345"), "format");
+  assert.equal(Core.amountProblem("0"), "zero");
+  assert.equal(Core.amountProblem("-5"), "zero");
+  assert.equal(Core.amountProblem(""), "zero");
+  assert.ok(Core.isValidUpi("shopname@okaxis") && Core.isValidUpi("ravi.kumar-1@ybl"));
+  assert.ok(!Core.isValidUpi("hello") && !Core.isValidUpi("@okaxis") && !Core.isValidUpi("a b@okaxis"));
+});
