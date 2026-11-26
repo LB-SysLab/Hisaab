@@ -297,11 +297,92 @@
     });
   }
 
+
+  /* ---------- Telugu / Hindi letters back to English letters (for English mode) ---------- */
+  // Built from Unicode order: Telugu and Devanagari share the same layout, offset 0x0C00 and 0x0900
+  var BACK_CONS = { 0x15: "k", 0x16: "kh", 0x17: "g", 0x18: "gh", 0x19: "n", 0x1A: "ch", 0x1B: "chh", 0x1C: "j", 0x1D: "jh", 0x1E: "n",
+    0x1F: "t", 0x20: "th", 0x21: "d", 0x22: "dh", 0x23: "n", 0x24: "t", 0x25: "th", 0x26: "d", 0x27: "dh", 0x28: "n", 0x2A: "p", 0x2B: "ph",
+    0x2C: "b", 0x2D: "bh", 0x2E: "m", 0x2F: "y", 0x30: "r", 0x31: "r", 0x32: "l", 0x33: "l", 0x35: "v", 0x36: "sh", 0x37: "sh", 0x38: "s", 0x39: "h",
+    0x58: "q", 0x59: "kh", 0x5A: "g", 0x5B: "z", 0x5C: "r", 0x5D: "rh", 0x5E: "f", 0x5F: "y" };
+  var BACK_VOW = { 0x05: "a", 0x06: "aa", 0x07: "i", 0x08: "ee", 0x09: "u", 0x0A: "oo", 0x0B: "ru", 0x0E: "e", 0x0F: "e", 0x10: "ai", 0x11: "o", 0x12: "o", 0x13: "o", 0x14: "au" };
+  var BACK_SIGN = { 0x3E: "aa", 0x3F: "i", 0x40: "ee", 0x41: "u", 0x42: "oo", 0x43: "ru", 0x45: "o", 0x46: "e", 0x47: "e", 0x48: "ai", 0x49: "o", 0x4A: "o", 0x4B: "o", 0x4C: "au" };
+  var NUKTA = { 0x15: 0x58, 0x16: 0x59, 0x17: 0x5A, 0x1C: 0x5B, 0x21: 0x5C, 0x22: 0x5D, 0x2B: 0x5E, 0x2F: 0x5F };
+  function scriptOf(text) {
+    var s = String(text || "");
+    if (/[ఀ-౿]/.test(s)) return "te";
+    if (/[ऀ-ॿ]/.test(s)) return "hi";
+    return "";
+  }
+  // One word by sound: రవి -> ravi, कुमार -> kumar, బియ్యం -> biyyam
+  function toLatinWord(word) {
+    var code = scriptOf(word); if (!code) return word;
+    var base = code === "te" ? 0x0C00 : 0x0900, out = "", pend = false, chars = Array.from(word);
+    for (var i = 0; i < chars.length; i++) {
+      var o = chars[i].codePointAt(0) - base;
+      if (o < 0 || o > 0x7F) { if (pend) { out += "a"; pend = false; } out += chars[i]; continue; }
+      if (BACK_CONS[o] != null) {
+        if (pend) out += "a";
+        var nx = chars[i + 1] ? chars[i + 1].codePointAt(0) - base : -1;
+        if (nx === 0x3C && NUKTA[o]) { o = NUKTA[o]; i++; }
+        out += BACK_CONS[o]; pend = true;
+      } else if (BACK_SIGN[o] != null) { out += BACK_SIGN[o]; pend = false; }
+      else if (o === 0x4D) pend = false;                       // virama: no vowel
+      else if (BACK_VOW[o] != null) { if (pend) out += "a"; out += BACK_VOW[o]; pend = false; }
+      else if (o === 0x02 || o === 0x01) {                      // anusvara / chandrabindu
+        if (pend) { out += "a"; pend = false; }
+        var n2 = chars[i + 1] ? chars[i + 1].codePointAt(0) - base : -1;
+        out += (n2 >= 0x2A && n2 <= 0x2E) || n2 === 0x39 || n2 < 0 ? "m" : "n";
+      }
+      else if (o === 0x03) { if (pend) { out += "a"; pend = false; } out += "h"; }
+      else if (o === 0x3C) {}                                     // stray nukta
+      else { if (pend) { out += "a"; pend = false; } }
+    }
+    if (pend && code === "te") out += "a";                       // Telugu keeps the last "a"; Hindi drops it (राम -> ram)
+    // Easier to read: long vowels at the very end are written short (దేవి/देवी -> devi), "aa" -> "a"
+    out = out.replace(/ee$/, "i").replace(/oo$/, "u").replace(/aa/g, "a");
+    if (code === "hi" && out.length <= 2 && pend) out += "a";
+    return out;
+  }
+  // Script word -> English key, from the name and note lists (first one wins)
+  var BACK_NAME = {}, BACK_TEXT = {};
+  (function () {
+    var k;
+    for (k in NAME_WORDS) for (var c = 0; c < 2; c++) if (!BACK_NAME[NAME_WORDS[k][c]]) BACK_NAME[NAME_WORDS[k][c]] = k;
+    for (k in TEXT_PHRASES) for (c = 0; c < 2; c++) if (!BACK_TEXT[TEXT_PHRASES[k][c]]) BACK_TEXT[TEXT_PHRASES[k][c]] = k;
+    for (k in TEXT_WORDS) for (c = 0; c < 2; c++) if (!BACK_TEXT[TEXT_WORDS[k][c]]) BACK_TEXT[TEXT_WORDS[k][c]] = k;
+  })();
+  function cap(w) { return w ? w.charAt(0).toUpperCase() + w.slice(1) : w; }
+  // Text written in Telugu or Hindi letters, in English letters.
+  // kind "name": people's names (capitalised). kind "text": notes (known words are translated). kind "shop": like text, capitalised.
+  // typed: { scriptWord: "the English letters the person typed" } from phonetic typing, used first for names.
+  function toEnglish(text, kind, typed) {
+    var s = String(text == null ? "" : text);
+    if (!scriptOf(s)) return s;
+    typed = typed || {};
+    if (kind === "text" && BACK_TEXT.hasOwnProperty(s.trim())) return BACK_TEXT[s.trim()];
+    var WORD = /[ऀ-ॿఀ-౿‌‍]+/g;
+    return s.replace(WORD, function (w) {
+      var out;
+      if (kind === "name") out = typed[w] || (BACK_NAME[w] != null ? BACK_NAME[w] : toLatinWord(w));
+      else out = BACK_TEXT[w] != null ? BACK_TEXT[w] : typed[w] || BACK_NAME[w] || toLatinWord(w);
+      return kind === "text" ? out : cap(String(out).toLowerCase());
+    });
+  }
+  // What to show for a saved name / note / shop name in the chosen language.
+  // saved: as typed. en: the English letters kept beside it (may be empty).
+  function shownIn(saved, en, code, kind) {
+    var s = String(saved == null ? "" : saved), sc = scriptOf(s);
+    if (code !== "te" && code !== "hi") return sc ? (en || toEnglish(s, kind)) : s;
+    if (sc === code) return s;                                    // already in this language: keep the person's own spelling
+    var base = sc ? (en || toEnglish(s, kind)) : s;
+    return kind === "name" ? displayName(base, code) : displayText(base, code);
+  }
+
   return {
     pad: pad, isoOf: isoOf, parseISO: parseISO, todayFrom: todayFrom, daysBetween: daysBetween,
     OVERDUE_DAYS: OVERDUE_DAYS, summarise: summarise, totalOutstanding: totalOutstanding, sortedEntries: sortedEntries, overdueList: overdueList,
     cleanPhone: cleanPhone, isValidPhone: isValidPhone,
     uid: uid, nextSeq: nextSeq, noteSeq: noteSeq,
-    parseShop: parseShop, buildCsv: buildCsv, pickAmount: pickAmount, translitText: translitText, displayName: displayName, displayText: displayText
+    parseShop: parseShop, buildCsv: buildCsv, pickAmount: pickAmount, translitText: translitText, displayName: displayName, displayText: displayText, scriptOf: scriptOf, toEnglish: toEnglish, shownIn: shownIn
   };
 });

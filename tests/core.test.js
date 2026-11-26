@@ -141,3 +141,15 @@ test("shop name and notes show in Telugu or Hindi; English and saved text stay t
   assert.equal(Core.displayText("బియ్యం", "te"), "బియ్యం", "text already in a script is left alone");
   assert.equal(Core.displayText("", "te"), "");
 });
+
+test("names and notes typed in Telugu or Hindi show in English letters in English mode", () => {
+  assert.equal(Core.toEnglish("రవి కుమార్", "name"), "Ravi Kumar");
+  assert.equal(Core.toEnglish("अजय वर्मा", "name"), "Ajay Verma");
+  assert.equal(Core.toEnglish("భస్కర్ రెద్ది", "name", { "భస్కర్": "Bhaskar", "రెద్ది": "Reddy" }), "Bhaskar Reddy", "the English letters typed win");
+  assert.equal(Core.toEnglish("బియ్యం", "text"), "rice");
+  assert.equal(Core.toEnglish("चीनी 2 किलो", "text"), "sugar 2 kilo");
+  assert.equal(Core.shownIn("రవి కుమార్", "", "en", "name"), "Ravi Kumar");
+  assert.equal(Core.shownIn("రవి కుమార్", "", "hi", "name"), "रवि कुमार", "Telugu name shows in Hindi letters in Hindi mode");
+  assert.equal(Core.shownIn("రవి కుమార్", "", "te", "name"), "రవి కుమార్", "own language keeps the saved spelling");
+  assert.equal(Core.shownIn("Ravi Kumar", undefined, "en", "name"), "Ravi Kumar", "English names never change");
+});
