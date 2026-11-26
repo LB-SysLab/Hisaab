@@ -155,11 +155,15 @@ test("names and notes typed in Telugu or Hindi show in English letters in Englis
 });
 
 test("field checks: phone, name, amount and UPI ID", () => {
-  assert.ok(Core.isValidPhone("+91 98765 43210"), "+91 in front is fine");
-  assert.ok(Core.isValidPhone("09876543210"), "0 in front is fine");
+  assert.ok(!Core.isValidPhone("+91 98765 43210"), "no country code");
+  assert.ok(!Core.isValidPhone("0000000000"), "cannot start with 0");
+  assert.ok(!Core.isValidPhone("09876543210"));
+  assert.ok(!Core.isValidPhone("0123456789"));
+  assert.ok(!Core.isValidPhone("1234567890"), "must start with 6-9");
+  assert.ok(!Core.isValidPhone("5876543210"));
+  assert.ok(Core.isValidPhone("6000000000") && Core.isValidPhone("7000000000") && Core.isValidPhone("8000000000"));
   assert.ok(Core.isValidPhone("98765-43210"));
-  assert.ok(!Core.isValidPhone("98765432101"), "11 digits without a 0 or 91 in front is refused");
-  assert.equal(Core.cleanPhone("+91 98765 43210"), "9876543210");
+  assert.ok(!Core.isValidPhone("98765432101"));
   assert.ok(Core.hasLetter("Ravi Kumar") && Core.hasLetter("రవి") && Core.hasLetter("रवि"));
   assert.ok(!Core.hasLetter("12345") && !Core.hasLetter("@@##"));
   assert.equal(Core.amountProblem("250"), "");

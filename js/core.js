@@ -55,12 +55,8 @@
   }
 
   /* ---------- Customer checks ---------- */
-  // Spaces and dashes are ignored; a +91 / 91 / 0 in front of a 10-digit number is dropped
-  function cleanPhone(v) {
-    var p = String(v == null ? "" : v).trim().replace(/[\s-]/g, "");
-    var m = /^(?:\+?91|0)(\d{10})$/.exec(p);
-    return m ? m[1] : p;
-  }
+  // Spaces and dashes are ignored. No country code: the number is the 10 digits only
+  function cleanPhone(v) { return String(v == null ? "" : v).trim().replace(/[\s-]/g, ""); }
   // A name needs at least one letter (any language): "12345" or "@@##" is refused
   function hasLetter(v) { return /\p{L}/u.test(String(v || "")); }
   var MAX_AMOUNT = 1000000; // Rs 10,00,000 for one entry
@@ -75,7 +71,8 @@
   }
   // name@bank, for example shopname@okaxis
   function isValidUpi(v) { return /^[A-Za-z0-9._-]{2,256}@[A-Za-z][A-Za-z0-9.]{1,63}$/.test(String(v || "").trim()); }
-  function isValidPhone(v) { return /^\d{10}$/.test(cleanPhone(v)); }
+  // Exactly 10 digits, starting with 6, 7, 8 or 9 (Indian mobile numbers)
+  function isValidPhone(v) { return /^[6-9]\d{9}$/.test(cleanPhone(v)); }
 
   /* ---------- Ids ---------- */
   var seq = 0;

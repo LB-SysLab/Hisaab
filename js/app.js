@@ -284,11 +284,19 @@
     var form = document.getElementById(id).closest("form");
     form.addEventListener("input", function (e) { if (e.target.classList && e.target.classList.contains("bad") && e.target.id !== "cust-phone") clearErr(id); });
   });
-  // The phone box takes numbers only: letters are removed as they are typed, with a message
+  // The phone box takes digits only and stops at 10. Anything else is removed as it is typed, with a message
+  // that stays until the box holds a proper 10-digit number
+  // More than 10 digits usually means +91 or 0 was typed in front: Save stays refused until the box is fixed
+  var phoneTooLong = false;
   document.getElementById("cust-phone").addEventListener("input", function () {
-    var el = this, v = el.value, clean = v.replace(/[^\d\s+-]/g, "");
-    if (clean !== v) { el.value = clean; fieldErr("cust-err", el, T[lang].errPhoneTyped); }
-    else if (el.classList.contains("bad")) clearErr("cust-err");
+    var el = this, v = el.value, digits = v.replace(/\D/g, ""), clean = digits.slice(0, 10), t = T[lang];
+    if (clean !== v) el.value = clean;
+    if (digits.length > 10) phoneTooLong = true;
+    else if (clean.length < 10) phoneTooLong = false;
+    if (digits.length > 10 || (phoneTooLong && clean.length === 10)) fieldErr("cust-err", el, t.errPhoneLong);
+    else if (/\D/.test(v)) fieldErr("cust-err", el, t.errPhoneTyped);
+    else if (/^[0-5]/.test(clean)) fieldErr("cust-err", el, t.errPhoneZero);
+    else if (el.classList.contains("bad") && Core.isValidPhone(clean)) clearErr("cust-err");
   });
 
   /* ---------- Sheets ---------- */
@@ -302,7 +310,7 @@
   /* Add customer */
   document.getElementById("add-cust-btn").addEventListener("click", function () {
     document.getElementById("cust-form").reset();
-    clearErr("cust-err");
+    clearErr("cust-err"); phoneTooLong = false;
     openSheet("sheet-cust");
   });
   document.getElementById("cust-form").addEventListener("submit", function (e) {
@@ -315,6 +323,8 @@
     var nameEl = document.getElementById("cust-name"), phoneEl = document.getElementById("cust-phone");
     if (!name) return fieldErr("cust-err", nameEl, t.errName);
     if (!Core.hasLetter(name)) return fieldErr("cust-err", nameEl, t.errNameLetter);
+    if (phoneTooLong) return fieldErr("cust-err", phoneEl, t.errPhoneLong);
+    if (/^[0-5]/.test(phone)) return fieldErr("cust-err", phoneEl, t.errPhoneZero);
     if (!Core.isValidPhone(phone)) return fieldErr("cust-err", phoneEl, t.errPhone);
     if (findCust(phone)) return fieldErr("cust-err", phoneEl, t.errDup);
     clearErr("cust-err");
