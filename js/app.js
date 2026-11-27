@@ -308,6 +308,35 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeSheets(); document.getElementById("viewer").hidden = true; } });
 
   /* Add customer */
+  /* Delete customer: only a closed khata (balance 0, and 30+ days since the last entry). Two taps to confirm. */
+  var delArmed = false;
+  function resetDelCust() {
+    var t = T[lang], b = document.getElementById("del-cust"), m = document.getElementById("del-cust-msg");
+    delArmed = false; b.classList.remove("armed"); b.textContent = t.delCust;
+    document.getElementById("del-cust-hint").textContent = fill(t.delCustHint, { rs: t.rs });
+    m.hidden = true; m.textContent = "";
+  }
+  document.getElementById("del-cust").addEventListener("click", function () {
+    var t = T[lang], b = this, m = document.getElementById("del-cust-msg");
+    var c = findCust(editingCust); if (!c) return;
+    var chk = Core.deleteCheck(c, TODAY);
+    if (!chk.ok) {
+      m.textContent = chk.why === "balance"
+        ? fill(t.delCustBal, { rs: t.rs, amt: fmt(chk.bal) })
+        : fill(t.delCustWait, { date: prettyDate(chk.until), days: chk.left });
+      m.hidden = false; return;
+    }
+    if (!delArmed) {
+      delArmed = true; b.classList.add("armed"); b.textContent = fill(t.delCustConfirm, { name: shownName(c) });
+      setTimeout(function () { if (delArmed) resetDelCust(); }, 4000);
+      return;
+    }
+    var name = shownName(c);
+    state.customers = state.customers.filter(function (x) { return x !== c; });
+    editingCust = null; delArmed = false;
+    save(); closeSheets(); location.hash = "";
+    render(); toast(fill(t.custDeleted, { name: name }));
+  });
   var custNameShown = ""; // the name as shown when the edit box opened
   var editingCust = null; // phone of the customer being edited, or null when adding
   function setCustTitle(key) { var h = document.getElementById("cust-title"); h.setAttribute("data-t", key); h.textContent = T[lang][key]; }
@@ -315,6 +344,7 @@
     document.getElementById("cust-form").reset();
     clearErr("cust-err"); phoneTooLong = false; editingCust = null;
     setCustTitle("addCustomerTitle");
+    document.getElementById("del-cust-wrap").hidden = true;
     openSheet("sheet-cust");
   });
   /* Edit customer: fix a wrong name or mobile number. Entries stay with the customer. */
@@ -323,6 +353,8 @@
     document.getElementById("cust-form").reset();
     clearErr("cust-err"); phoneTooLong = false; editingCust = c.phone;
     setCustTitle("editCustomerTitle");
+    resetDelCust();
+    document.getElementById("del-cust-wrap").hidden = false;
     openSheet("sheet-cust");
     // Show the name as it reads in the chosen language; it is only changed if the owner edits it
     custNameShown = shownName(c);
@@ -358,7 +390,7 @@
       toast(fill(t.updatedCustomer, { name: shownName(ec) }));
       return;
     }
-    var cust = { name: name, phone: phone, entries: [] };
+    var cust = { name: name, phone: phone, added: TODAY_ISO, entries: [] };
     var nameEn = englishOf(document.getElementById("cust-name"), "name"); if (nameEn) cust.nameEn = nameEn;
     state.customers.push(cust);
     save(); closeSheets(); filter = "all"; query = ""; document.getElementById("search").value = "";

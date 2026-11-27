@@ -152,6 +152,9 @@ html[lang="te"] .brand b { font-family: var(--font-body); font-size: 21px; }
 .panel h3 { margin: 0; font-size: 16px; }
 .panel p { margin: 0; font-size: 13.5px; color: var(--muted); }
 textarea { width: 100%; min-height: 110px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--bg); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; resize: vertical; }
+.del-cust { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.btn.del-btn { width: 100%; background: transparent; color: var(--owe); border-color: var(--owe); }
+.btn.del-btn.armed { background: var(--owe); color: #fff; }
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn-row .btn { flex: 1 1 150px; }
 .foot { font-size: 12.5px; color: var(--muted); margin: 18px 2px 120px; text-align: center; }

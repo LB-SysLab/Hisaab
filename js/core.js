@@ -41,6 +41,20 @@
     return round2(customers.reduce(function (a, c) { return a + summarise(c, today).bal; }, 0));
   }
   // Newest first; entries on the same day keep the order they were added (later one on top)
+  // A customer can be deleted only when the khata is closed: balance exactly 0, and 30 days or more since the
+  // last entry (or since the customer was added, when there are no entries yet)
+  var CLOSE_DAYS = 30;
+  function deleteCheck(c, today) {
+    var s = summarise(c, today);
+    if (s.bal !== 0) return { ok: false, why: "balance", bal: s.bal };
+    var last = c.added || null;
+    (c.entries || []).forEach(function (e) { if (e.date && (!last || e.date > last)) last = e.date; });
+    if (!last) return { ok: true };
+    var days = daysBetween(last, today);
+    if (days >= CLOSE_DAYS) return { ok: true };
+    var until = parseISO(last); until.setDate(until.getDate() + CLOSE_DAYS);
+    return { ok: false, why: "wait", last: last, until: isoOf(until), left: CLOSE_DAYS - days };
+  }
   function sortedEntries(c) {
     return (c.entries || []).slice().sort(function (a, b) {
       if (a.date !== b.date) return a.date < b.date ? 1 : -1;
@@ -396,7 +410,7 @@
 
   return {
     pad: pad, isoOf: isoOf, parseISO: parseISO, todayFrom: todayFrom, daysBetween: daysBetween,
-    OVERDUE_DAYS: OVERDUE_DAYS, summarise: summarise, totalOutstanding: totalOutstanding, sortedEntries: sortedEntries, overdueList: overdueList,
+    OVERDUE_DAYS: OVERDUE_DAYS, CLOSE_DAYS: CLOSE_DAYS, deleteCheck: deleteCheck, summarise: summarise, totalOutstanding: totalOutstanding, sortedEntries: sortedEntries, overdueList: overdueList,
     cleanPhone: cleanPhone, isValidPhone: isValidPhone, hasLetter: hasLetter, amountProblem: amountProblem, isValidUpi: isValidUpi, MAX_AMOUNT: MAX_AMOUNT,
     uid: uid, nextSeq: nextSeq, noteSeq: noteSeq,
     parseShop: parseShop, buildCsv: buildCsv, pickAmount: pickAmount, translitText: translitText, displayName: displayName, displayText: displayText, scriptOf: scriptOf, toEnglish: toEnglish, shownIn: shownIn

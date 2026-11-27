@@ -180,3 +180,20 @@ test("field checks: phone, name, amount and UPI ID", () => {
   assert.ok(Core.isValidUpi("shopname@okaxis") && Core.isValidUpi("ravi.kumar-1@ybl"));
   assert.ok(!Core.isValidUpi("hello") && !Core.isValidUpi("@okaxis") && !Core.isValidUpi("a b@okaxis"));
 });
+
+test("delete customer only when balance is 0 and 30 days have passed", () => {
+  const today = Core.parseISO("2026-11-27");
+  const closed = { entries: [{ type: "credit", amount: 500, date: "2026-10-01" }, { type: "payment", amount: 500, date: "2026-10-20" }] };
+  assert.equal(Core.deleteCheck(closed, today).ok, true); // 38 days since last entry
+  const recent = { entries: [{ type: "credit", amount: 500, date: "2026-11-01" }, { type: "payment", amount: 500, date: "2026-11-10" }] };
+  const r = Core.deleteCheck(recent, today);
+  assert.equal(r.ok, false); assert.equal(r.why, "wait"); assert.equal(r.until, "2026-12-10"); assert.equal(r.left, 13);
+  assert.equal(Core.deleteCheck({ entries: [{ type: "payment", amount: 500, date: "2026-11-27" }, { type: "credit", amount: 500, date: "2026-10-28" }] }, today).why, "wait");
+  const owes = Core.deleteCheck({ entries: [{ type: "credit", amount: 120, date: "2026-01-01" }] }, today);
+  assert.equal(owes.ok, false); assert.equal(owes.why, "balance"); assert.equal(owes.bal, 120);
+  assert.equal(Core.deleteCheck({ entries: [{ type: "payment", amount: 50, date: "2026-01-01" }] }, today).why, "balance"); // advance
+  assert.equal(Core.deleteCheck({ added: "2026-11-20", entries: [] }, today).why, "wait");
+  assert.equal(Core.deleteCheck({ added: "2026-10-27", entries: [] }, today).ok, true); // exactly 31 days
+  assert.equal(Core.deleteCheck({ added: "2026-10-28", entries: [] }, today).ok, true); // exactly 30 days
+  assert.equal(Core.deleteCheck({ entries: [] }, today).ok, true); // nothing recorded
+});
