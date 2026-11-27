@@ -102,7 +102,10 @@ test("amount is read from payment screenshot text, even when ₹ is misread", ()
     ["Payment successful\nRs. 500.00\n25 Oct 2026", 500],
     ["Paid\n€ 2,340\nTo SHOP", 2340],
     ["Sent 1,25,000", 125000],
-    ["UPI ref 612345678901", null]
+    ["UPI ref 612345678901", null],
+    ["R450\n\nPaid to LAKSHMI STORE\n\n27 Nov 2026, 6:42 pm\n\nUPI transaction ID 6201445588\n", 450],
+    ["#1,250\n", 1250],
+    ["UPI Ref No R1234567890", null]
   ];
   for (const [text, want] of cases) assert.equal(Core.pickAmount(text), want, JSON.stringify(text));
 });

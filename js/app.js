@@ -436,14 +436,29 @@
     return tessPromise;
   }
   var pickAmount = Core.pickAmount;
+  // Second try for pictures where the first reading finds no amount. Payment apps show the amount in very
+  // big letters, which the normal reading often skips. "Sparse text" mode looks for words anywhere on the picture.
+  var sparseWorker = null;
+  function readSparse(Tess, dataUrl) {
+    if (!sparseWorker) sparseWorker = Tess.createWorker("eng").then(function (w) {
+      return w.setParameters({ tessedit_pageseg_mode: "11" }).then(function () { return w; });
+    }).catch(function (e) { sparseWorker = null; throw e; });
+    return sparseWorker.then(function (w) { return w.recognize(dataUrl); });
+  }
+  function textOf(out) { return out && out.data && out.data.text; }
   function readAmount(dataUrl) {
     var t = T[lang], box = document.getElementById("ocr");
     box.hidden = false; box.textContent = t.reading;
     var token = dataUrl;
-    loadTesseract().then(function (Tess) { return Tess.recognize(dataUrl, "eng"); })
-      .then(function (out) {
+    loadTesseract().then(function (Tess) {
+      return Tess.recognize(dataUrl, "eng").then(function (out) {
+        var v = pickAmount(textOf(out));
+        if (v != null || pendingShot !== token) return v;
+        return readSparse(Tess, dataUrl).then(function (o2) { return pickAmount(textOf(o2)); });
+      });
+    })
+      .then(function (v) {
         if (pendingShot !== token) return;
-        var v = pickAmount(out && out.data && out.data.text);
         if (v == null) { box.textContent = t.readFail; return; }
         var amt = document.getElementById("entry-amount");
         if (!amt.value) { amt.value = v; box.textContent = fill(t.readOk, { amt: fmt(v) }); }

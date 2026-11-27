@@ -170,7 +170,7 @@
 
   /* ---------- Reading the amount from a payment screenshot's text ---------- */
   // OCR often misreads the rupee sign as ¥, %, €, £, $, ?, F or z
-  var RUPEE_LOOKALIKE = "[₹¥%€£$?Fz]";
+  var RUPEE_LOOKALIKE = "[₹¥%€£$?FzR#]"; // how the reader often sees the ₹ sign
   var NUM = "(\\d{1,3}(?:,\\d{2,3})+(?:\\.\\d{1,2})?|\\d{1,7}(?:\\.\\d{1,2})?)";
   function pickAmount(text) {
     var t = String(text || "").replace(/[Oo](?=\d)/g, "0").replace(/(\d)[Oo]/g, "$10");
