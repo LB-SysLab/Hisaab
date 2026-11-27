@@ -51,7 +51,7 @@
 
     <div id="top-cust" hidden>
       <div class="cust-top">
-        <div class="nm" id="c-name"></div>
+        <div class="nm-row"><div class="nm" id="c-name"></div><button type="button" class="edit-cust" id="edit-cust" data-t="editCust">Edit</button></div>
         <div class="ph" id="c-phone"></div>
       </div>
       <div class="total">
@@ -135,7 +135,7 @@
 <div class="sheet-wrap" id="sheet-cust" hidden>
   <form class="sheet" id="cust-form" novalidate>
     <div class="grab"></div>
-    <h2 data-t="addCustomerTitle">New customer</h2>
+    <h2 id="cust-title" data-t="addCustomerTitle">New customer</h2>
     <div class="field">
       <label for="cust-name" data-t="name">Name</label>
       <input id="cust-name" type="text" autocomplete="off" maxlength="60" data-translit autocapitalize="off" autocorrect="off" spellcheck="false">

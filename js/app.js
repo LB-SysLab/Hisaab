@@ -308,10 +308,23 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeSheets(); document.getElementById("viewer").hidden = true; } });
 
   /* Add customer */
+  var editingCust = null; // phone of the customer being edited, or null when adding
+  function setCustTitle(key) { var h = document.getElementById("cust-title"); h.setAttribute("data-t", key); h.textContent = T[lang][key]; }
   document.getElementById("add-cust-btn").addEventListener("click", function () {
     document.getElementById("cust-form").reset();
-    clearErr("cust-err"); phoneTooLong = false;
+    clearErr("cust-err"); phoneTooLong = false; editingCust = null;
+    setCustTitle("addCustomerTitle");
     openSheet("sheet-cust");
+  });
+  /* Edit customer: fix a wrong name or mobile number. Entries stay with the customer. */
+  document.getElementById("edit-cust").addEventListener("click", function () {
+    var c = findCust(currentPhone()); if (!c) return;
+    document.getElementById("cust-form").reset();
+    clearErr("cust-err"); phoneTooLong = false; editingCust = c.phone;
+    setCustTitle("editCustomerTitle");
+    openSheet("sheet-cust");
+    document.getElementById("cust-name").value = c.name;
+    document.getElementById("cust-phone").value = c.phone;
   });
   document.getElementById("cust-form").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -326,8 +339,22 @@
     if (phoneTooLong) return fieldErr("cust-err", phoneEl, t.errPhoneLong);
     if (/^[0-5]/.test(phone)) return fieldErr("cust-err", phoneEl, t.errPhoneZero);
     if (!Core.isValidPhone(phone)) return fieldErr("cust-err", phoneEl, t.errPhone);
-    if (findCust(phone)) return fieldErr("cust-err", phoneEl, t.errDup);
+    var same = findCust(phone);
+    if (same && same.phone !== editingCust) return fieldErr("cust-err", phoneEl, t.errDup);
     clearErr("cust-err");
+    if (editingCust) {
+      var ec = findCust(editingCust); if (!ec) { closeSheets(); return; }
+      if (name !== ec.name) {
+        ec.name = name;
+        var en = englishOf(nameEl, "name"); if (en) ec.nameEn = en; else delete ec.nameEn;
+      }
+      var moved = phone !== ec.phone;
+      ec.phone = phone; editingCust = null;
+      save(); closeSheets();
+      if (moved) location.hash = "#c-" + phone; else render();
+      toast(fill(t.updatedCustomer, { name: shownName(ec) }));
+      return;
+    }
     var cust = { name: name, phone: phone, entries: [] };
     var nameEn = englishOf(document.getElementById("cust-name"), "name"); if (nameEn) cust.nameEn = nameEn;
     state.customers.push(cust);
