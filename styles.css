@@ -103,7 +103,7 @@ html[lang="te"] .brand b { font-family: var(--font-body); font-size: 21px; }
 .pair #data-panel h3 { margin: 0; font-size: 15px; }
 .pair #data-panel p { margin: 0; font-size: 13px; }
 .pair textarea { min-height: 90px; }
-/* Recommended option (waiting for BL): one under the other on phones, side by side from 600 px */
+/* BL chose: one under the other on phones, side by side from 600 px wide */
 @media (max-width: 599px) {
   .pair.auto { grid-template-columns: 1fr; }
   .pair.auto .chips, .pair.auto .btn-row { flex-direction: row; }
