@@ -197,3 +197,17 @@ test("delete customer only when balance is 0 and 60 days have passed", () => {
   assert.equal(Core.deleteCheck({ added: "2026-09-28", entries: [] }, today).ok, true); // 60 days
   assert.equal(Core.deleteCheck({ entries: [] }, today).ok, true); // nothing recorded
 });
+
+test("summary for the last week / 2 weeks / month, today included", () => {
+  const today = Core.parseISO("2026-10-25");
+  const cs = [
+    { entries: [{ type: "credit", amount: 300, date: "2026-10-19" }, { type: "payment", amount: 1000, date: "2026-10-25" }, { type: "credit", amount: 50, date: "2026-10-18" }] },
+    { entries: [{ type: "payment", amount: 200, date: "2026-10-12" }, { type: "credit", amount: 900, date: "2026-10-26" }] }
+  ];
+  const w = Core.periodSummary(cs, today, 7);
+  assert.equal(w.from, "2026-10-19"); assert.equal(w.to, "2026-10-25");
+  assert.equal(w.got, 1000); assert.equal(w.gave, 300); assert.equal(w.diff, 700); assert.equal(w.count, 2);
+  const two = Core.periodSummary(cs, today, 14);
+  assert.equal(two.from, "2026-10-12"); assert.equal(two.got, 1200); assert.equal(two.gave, 350);
+  assert.equal(Core.periodSummary(cs, Core.parseISO("2026-12-31"), 30).count, 0);
+});

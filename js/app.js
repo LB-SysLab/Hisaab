@@ -134,8 +134,26 @@
     if (onCust) renderCustomer(c); else renderHome();
   }
 
+  /* Summary: last week / 2 weeks / month, today included */
+  var sumDays = 7;
+  function money(n) { return T[lang].rs + " " + fmt(n); }
+  function renderSummary() {
+    var t = T[lang], s = Core.periodSummary(state.customers, TODAY, sumDays);
+    document.querySelectorAll("#sum-periods [data-days]").forEach(function (b) { b.setAttribute("aria-pressed", String(Number(b.getAttribute("data-days")) === sumDays)); });
+    document.getElementById("sum-range").textContent = prettyDate(s.from) + " – " + prettyDate(s.to);
+    document.getElementById("sum-got").textContent = money(s.got);
+    document.getElementById("sum-gave").textContent = money(s.gave);
+    document.getElementById("sum-pending").textContent = money(s.pending);
+    var d = document.getElementById("sum-diff");
+    d.textContent = !s.count ? t.sumNone : s.diff > 0 ? fill(t.sumMore, { rs: t.rs, amt: fmt(s.diff) }) : s.diff < 0 ? fill(t.sumLess, { rs: t.rs, amt: fmt(-s.diff) }) : t.sumEqual;
+  }
+  document.getElementById("sum-periods").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-days]"); if (!b) return;
+    sumDays = Number(b.getAttribute("data-days")); renderSummary();
+  });
   function renderHome() {
     var t = T[lang];
+    renderSummary();
     document.getElementById("view-cust").querySelector("#entries").innerHTML = "";
     var rows = state.customers.map(function (c) { return { c: c, s: summarise(c) }; });
     var total = rows.reduce(function (a, r) { return a + r.s.bal; }, 0);

@@ -90,6 +90,22 @@
       <button type="button" class="btn ghost" id="upi-fix" data-t="settings"></button>
     </div>
 
+    <div class="head"><h2 data-t="sumTitle">Summary</h2><span id="sum-range"></span></div>
+    <div class="panel sum-panel" id="summary">
+      <div class="chips" role="group" id="sum-periods">
+        <button type="button" class="chip" data-days="7" data-t="sumWeek" aria-pressed="true">Week</button>
+        <button type="button" class="chip" data-days="14" data-t="sum2Weeks" aria-pressed="false">2 weeks</button>
+        <button type="button" class="chip" data-days="30" data-t="sumMonth" aria-pressed="false">Month</button>
+      </div>
+      <div class="sum-rows">
+        <div class="sum-row"><span data-t="sumGot">Money received</span><b class="got" id="sum-got"></b></div>
+        <div class="sum-row"><span data-t="sumGave">Credit given</span><b class="gave" id="sum-gave"></b></div>
+        <div class="sum-row"><span data-t="sumPending">Still pending (today)</span><b id="sum-pending"></b></div>
+      </div>
+      <p class="sum-diff" id="sum-diff"></p>
+      <p class="hint" data-t="sumNote"></p>
+    </div>
+
     <div class="head"><h2 data-t="customers">Customers</h2><span id="sort-label"></span></div>
     <ul class="list" id="list"></ul>
 

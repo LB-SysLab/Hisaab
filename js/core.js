@@ -40,6 +40,19 @@
   function totalOutstanding(customers, today) {
     return round2(customers.reduce(function (a, c) { return a + summarise(c, today).bal; }, 0));
   }
+  // Summary for the last N days, today included: money received (payments) and credit given
+  function periodSummary(customers, today, days) {
+    var from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (days - 1));
+    var fromIso = isoOf(from), toIso = isoOf(today), got = 0, gave = 0, count = 0;
+    customers.forEach(function (c) {
+      (c.entries || []).forEach(function (e) {
+        if (!e.date || e.date < fromIso || e.date > toIso) return;
+        count++;
+        if (e.type === "payment") got += Number(e.amount) || 0; else gave += Number(e.amount) || 0;
+      });
+    });
+    return { from: fromIso, to: toIso, got: round2(got), gave: round2(gave), diff: round2(got - gave), count: count, pending: totalOutstanding(customers, today) };
+  }
   // Newest first; entries on the same day keep the order they were added (later one on top)
   // A customer can be deleted only when the khata is closed: balance exactly 0, and 60 days or more since the
   // last entry (or since the customer was added, when there are no entries yet)
@@ -410,7 +423,7 @@
 
   return {
     pad: pad, isoOf: isoOf, parseISO: parseISO, todayFrom: todayFrom, daysBetween: daysBetween,
-    OVERDUE_DAYS: OVERDUE_DAYS, CLOSE_DAYS: CLOSE_DAYS, deleteCheck: deleteCheck, summarise: summarise, totalOutstanding: totalOutstanding, sortedEntries: sortedEntries, overdueList: overdueList,
+    OVERDUE_DAYS: OVERDUE_DAYS, CLOSE_DAYS: CLOSE_DAYS, deleteCheck: deleteCheck, periodSummary: periodSummary, summarise: summarise, totalOutstanding: totalOutstanding, sortedEntries: sortedEntries, overdueList: overdueList,
     cleanPhone: cleanPhone, isValidPhone: isValidPhone, hasLetter: hasLetter, amountProblem: amountProblem, isValidUpi: isValidUpi, MAX_AMOUNT: MAX_AMOUNT,
     uid: uid, nextSeq: nextSeq, noteSeq: noteSeq,
     parseShop: parseShop, buildCsv: buildCsv, pickAmount: pickAmount, translitText: translitText, displayName: displayName, displayText: displayText, scriptOf: scriptOf, toEnglish: toEnglish, shownIn: shownIn
