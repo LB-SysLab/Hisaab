@@ -90,40 +90,47 @@
       <button type="button" class="btn ghost" id="upi-fix" data-t="settings"></button>
     </div>
 
-    <div class="head"><h2 data-t="sumTitle">Summary</h2><span id="sum-range"></span></div>
-    <div class="panel sum-panel" id="summary">
-      <div class="chips" role="group" id="sum-periods">
-        <button type="button" class="chip" data-days="7" data-t="sumWeek" aria-pressed="true">Week</button>
-        <button type="button" class="chip" data-days="14" data-t="sum2Weeks" aria-pressed="false">2 weeks</button>
-        <button type="button" class="chip" data-days="30" data-t="sumMonth" aria-pressed="false">Month</button>
-      </div>
-      <div class="sum-rows">
-        <div class="sum-row"><span data-t="sumGot">Money received</span><b class="got" id="sum-got"></b></div>
-        <div class="sum-row"><span data-t="sumGave">Credit given</span><b class="gave" id="sum-gave"></b></div>
-        <div class="sum-row"><span data-t="sumPending">Still pending (today)</span><b id="sum-pending"></b></div>
-      </div>
-      <p class="sum-diff" id="sum-diff"></p>
-      <p class="hint" data-t="sumNote"></p>
-    </div>
-
     <div class="head"><h2 data-t="customers">Customers</h2><span id="sort-label"></span></div>
     <ul class="list" id="list"></ul>
 
-    <div class="head"><h2 data-t="dataTitle">Shop data</h2></div>
-    <div class="panel" id="data-panel">
-      <label for="import-box"><h3 data-t="importLbl">Load shop data</h3></label>
-      <p data-t="importHelp"></p>
-      <textarea id="import-box" spellcheck="false" placeholder='{ "customers": [ ... ] }'></textarea>
-      <div class="err" id="import-err" hidden></div>
-      <div class="btn-row">
-        <button type="button" class="btn primary" id="import-go" data-t="importGo">Load data</button>
-        <label class="btn ghost" for="import-file"><span data-t="importFile"></span></label>
-        <input type="file" id="import-file" accept=".json,application/json" hidden>
-      </div>
-      <div class="btn-row">
-        <button type="button" class="btn ghost" id="export-csv" data-t="exportCsv"></button>
-        <button type="button" class="btn ghost" id="install-btn" data-t="install" hidden></button>
-      </div>
+    <!-- Bottom of the home page: two separate boxes side by side -->
+    <div class="pair" id="bottom-pair">
+      <section class="pair-box" id="sum-box">
+        <div class="head"><h2 data-t="sumTitle">Summary</h2></div>
+        <div class="panel sum-panel" id="summary">
+            <span id="sum-range"></span>
+          <div class="chips" role="group" id="sum-periods">
+            <button type="button" class="chip" data-days="7" data-t="sumWeek" aria-pressed="true">Week</button>
+            <button type="button" class="chip" data-days="14" data-t="sum2Weeks" aria-pressed="false">2 weeks</button>
+            <button type="button" class="chip" data-days="30" data-t="sumMonth" aria-pressed="false">Month</button>
+          </div>
+          <div class="sum-rows">
+            <div class="sum-row"><span data-t="sumGot">Money received</span><b class="got" id="sum-got"></b></div>
+            <div class="sum-row"><span data-t="sumGave">Credit given</span><b class="gave" id="sum-gave"></b></div>
+            <div class="sum-row"><span data-t="sumPending">Still pending (today)</span><b id="sum-pending"></b></div>
+          </div>
+          <p class="sum-diff" id="sum-diff"></p>
+          <p class="hint" data-t="sumNote"></p>
+        </div>
+      </section>
+      <section class="pair-box" id="data-box">
+        <div class="head"><h2 data-t="dataTitle">Shop data</h2></div>
+        <div class="panel" id="data-panel">
+          <label for="import-box"><h3 data-t="importLbl">Load shop data</h3></label>
+          <p data-t="importHelp"></p>
+          <textarea id="import-box" spellcheck="false" placeholder='{ "customers": [ ... ] }'></textarea>
+          <div class="err" id="import-err" hidden></div>
+          <div class="btn-row">
+            <button type="button" class="btn primary" id="import-go" data-t="importGo">Load data</button>
+            <label class="btn ghost" for="import-file"><span data-t="importFile"></span></label>
+            <input type="file" id="import-file" accept=".json,application/json" hidden>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn ghost" id="export-csv" data-t="exportCsv"></button>
+            <button type="button" class="btn ghost" id="install-btn" data-t="install" hidden></button>
+          </div>
+        </div>
+      </section>
     </div>
     <p class="foot" data-t="foot"></p>
   </section>

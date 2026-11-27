@@ -88,6 +88,26 @@ html[lang="te"] .brand b { font-family: var(--font-body); font-size: 21px; }
 .chip[aria-pressed="true"] { background: var(--b1); color: #fff; border-color: var(--b1); }
 .chip .n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; margin-left: 6px; border-radius: 999px; background: var(--bg); font-size: 12px; font-variant-numeric: tabular-nums; }
 .chip[aria-pressed="true"] .n { background: rgba(255,255,255,.22); }
+/* Bottom pair: Summary and Shop data, two separate boxes side by side */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: stretch; margin-top: 8px; }
+.pair-box { min-width: 0; display: flex; flex-direction: column; }
+.pair-box > .panel { flex: 1 1 auto; padding: 12px; gap: 10px; }
+.pair .head { margin: 12px 2px 8px; }
+.pair .head h2 { font-size: inherit; }
+.pair .chips { flex-direction: column; }
+.pair .chip { width: 100%; padding: 0 8px; }
+.pair .sum-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+.pair .sum-row span { font-size: 13px; }
+.pair .btn-row { flex-direction: column; }
+.pair .btn-row .btn { flex: 0 0 auto; width: 100%; padding: 0 10px; text-align: center; }
+.pair #data-panel h3 { margin: 0; font-size: 15px; }
+.pair #data-panel p { margin: 0; font-size: 13px; }
+.pair textarea { min-height: 90px; }
+.pair.stack { grid-template-columns: 1fr; }
+.pair.stack .chips, .pair.stack .btn-row { flex-direction: row; }
+.pair.stack .chip { width: auto; padding: 0 14px; }
+.pair.stack .btn-row .btn { flex: 1 1 140px; width: auto; }
+.pair.stack .sum-row { flex-direction: row; justify-content: space-between; align-items: baseline; }
 .sum-rows { display: flex; flex-direction: column; }
 .sum-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .sum-row:last-child { border-bottom: 0; }
@@ -95,7 +115,7 @@ html[lang="te"] .brand b { font-family: var(--font-body); font-size: 21px; }
 .sum-row b.got { color: var(--clear); }
 .sum-row b.gave { color: var(--owe); }
 .sum-diff { margin: 0; font-weight: 600; }
-#sum-range { font-size: 13px; opacity: .75; }
+#sum-range { font-size: 12px; opacity: .75; }
 .head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 20px 2px 10px; flex-wrap: wrap; }
 .head h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin: 0; font-weight: 700; }
 .head span { font-size: 13px; color: var(--muted); }
