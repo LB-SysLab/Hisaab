@@ -284,19 +284,19 @@
     var form = document.getElementById(id).closest("form");
     form.addEventListener("input", function (e) { if (e.target.classList && e.target.classList.contains("bad") && e.target.id !== "cust-phone") clearErr(id); });
   });
-  // The phone box takes digits only and stops at 10. Anything else is removed as it is typed, with a message
-  // that stays until the box holds a proper 10-digit number
-  // More than 10 digits usually means +91 or 0 was typed in front: Save stays refused until the box is fixed
+  // The phone box takes digits only and stops at 10. Anything else is removed as it is typed, with a message.
+  // More than 10 digits usually means +91 or 0 was typed in front: Save stays refused until the owner fixes the box.
+  // As soon as the box holds an acceptable number again, the red message goes away.
   var phoneTooLong = false;
   document.getElementById("cust-phone").addEventListener("input", function () {
     var el = this, v = el.value, digits = v.replace(/\D/g, ""), clean = digits.slice(0, 10), t = T[lang];
     if (clean !== v) el.value = clean;
-    if (digits.length > 10) phoneTooLong = true;
-    else if (clean.length < 10) phoneTooLong = false;
-    if (digits.length > 10 || (phoneTooLong && clean.length === 10)) fieldErr("cust-err", el, t.errPhoneLong);
+    // Too long only while extra digits are arriving; the next fix by the owner clears it
+    phoneTooLong = digits.length > 10;
+    if (phoneTooLong) fieldErr("cust-err", el, t.errPhoneLong);
     else if (/\D/.test(v)) fieldErr("cust-err", el, t.errPhoneTyped);
     else if (/^[0-5]/.test(clean)) fieldErr("cust-err", el, t.errPhoneZero);
-    else if (el.classList.contains("bad") && Core.isValidPhone(clean)) clearErr("cust-err");
+    else if (el.classList.contains("bad")) clearErr("cust-err"); // the number is fine now (or still being typed): the red message goes
   });
 
   /* ---------- Sheets ---------- */
@@ -308,6 +308,7 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeSheets(); document.getElementById("viewer").hidden = true; } });
 
   /* Add customer */
+  var custNameShown = ""; // the name as shown when the edit box opened
   var editingCust = null; // phone of the customer being edited, or null when adding
   function setCustTitle(key) { var h = document.getElementById("cust-title"); h.setAttribute("data-t", key); h.textContent = T[lang][key]; }
   document.getElementById("add-cust-btn").addEventListener("click", function () {
@@ -323,7 +324,9 @@
     clearErr("cust-err"); phoneTooLong = false; editingCust = c.phone;
     setCustTitle("editCustomerTitle");
     openSheet("sheet-cust");
-    document.getElementById("cust-name").value = c.name;
+    // Show the name as it reads in the chosen language; it is only changed if the owner edits it
+    custNameShown = shownName(c);
+    document.getElementById("cust-name").value = custNameShown;
     document.getElementById("cust-phone").value = c.phone;
   });
   document.getElementById("cust-form").addEventListener("submit", function (e) {
@@ -340,11 +343,11 @@
     if (/^[0-5]/.test(phone)) return fieldErr("cust-err", phoneEl, t.errPhoneZero);
     if (!Core.isValidPhone(phone)) return fieldErr("cust-err", phoneEl, t.errPhone);
     var same = findCust(phone);
-    if (same && same.phone !== editingCust) return fieldErr("cust-err", phoneEl, t.errDup);
+    if (same && same.phone !== editingCust) return fieldErr("cust-err", phoneEl, fill(t.errDupName, { name: shownName(same) }));
     clearErr("cust-err");
     if (editingCust) {
       var ec = findCust(editingCust); if (!ec) { closeSheets(); return; }
-      if (name !== ec.name) {
+      if (name !== custNameShown.trim().replace(/\s+/g, " ") && name !== ec.name) {
         ec.name = name;
         var en = englishOf(nameEl, "name"); if (en) ec.nameEn = en; else delete ec.nameEn;
       }
