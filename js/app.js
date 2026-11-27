@@ -308,12 +308,12 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeSheets(); document.getElementById("viewer").hidden = true; } });
 
   /* Add customer */
-  /* Delete customer: only a closed khata (balance 0, and 30+ days since the last entry). Two taps to confirm. */
+  /* Delete customer: only a closed khata (balance 0, and 60+ days since the last entry). Two taps to confirm. */
   var delArmed = false;
   function resetDelCust() {
     var t = T[lang], b = document.getElementById("del-cust"), m = document.getElementById("del-cust-msg");
     delArmed = false; b.classList.remove("armed"); b.textContent = t.delCust;
-    document.getElementById("del-cust-hint").textContent = fill(t.delCustHint, { rs: t.rs });
+    document.getElementById("del-cust-hint").textContent = fill(t.delCustHint, { rs: t.rs, n: Core.CLOSE_DAYS });
     m.hidden = true; m.textContent = "";
   }
   document.getElementById("del-cust").addEventListener("click", function () {
@@ -323,7 +323,7 @@
     if (!chk.ok) {
       m.textContent = chk.why === "balance"
         ? fill(t.delCustBal, { rs: t.rs, amt: fmt(chk.bal) })
-        : fill(t.delCustWait, { date: prettyDate(chk.until), days: chk.left });
+        : fill(chk.left === 1 ? t.delCustWait1 : t.delCustWait, { date: prettyDate(chk.until), days: chk.left, n: Core.CLOSE_DAYS });
       m.hidden = false; return;
     }
     if (!delArmed) {

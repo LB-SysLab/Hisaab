@@ -41,9 +41,9 @@
     return round2(customers.reduce(function (a, c) { return a + summarise(c, today).bal; }, 0));
   }
   // Newest first; entries on the same day keep the order they were added (later one on top)
-  // A customer can be deleted only when the khata is closed: balance exactly 0, and 30 days or more since the
+  // A customer can be deleted only when the khata is closed: balance exactly 0, and 60 days or more since the
   // last entry (or since the customer was added, when there are no entries yet)
-  var CLOSE_DAYS = 30;
+  var CLOSE_DAYS = 60;
   function deleteCheck(c, today) {
     var s = summarise(c, today);
     if (s.bal !== 0) return { ok: false, why: "balance", bal: s.bal };
