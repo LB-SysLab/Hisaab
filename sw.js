@@ -1,6 +1,6 @@
 // Hisaab service worker: keeps the app working offline after the first visit.
 // The app's own files load fresh from the network when online, and from the cache when offline.
-const CACHE = "hisaab-v8";
+const CACHE = "hisaab-v9";
 const CORE = ["./", "./index.html", "./styles.css", "./js/i18n.js", "./js/sample-data.js", "./js/core.js", "./js/app.js", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
